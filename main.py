@@ -5417,7 +5417,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mention = f'<a href="tg://user?id={user.id}">{safe_name}</a>'
     
     final_text = (
-        f"<blockquote>𝓗𝓮𝓵𝓵𝓸 {mention} ယခုလို ပြိုင်စံရှား <b>Powerd By Hyperion</b> ကို အသုံးပြုသည့်အတွက် Hyperion မှ အထူးပင်ကျေးဇူးတင်ရှိပါသည် Bot Permission များကို Channel ၌ Rules အတိုင်း လာရောက် တောင်းယူပါ</blockquote>"
+        f"<blockquote>𝓗𝓮𝓵𝓵𝓸 {mention} လောကနံပါတ်တစ် ဆရာသခင်ဒရိတ်ဘော့ ကိုအသုံးပြုသည့်အတွက် ဒရိတ် မှ အထူးပင်ကျေးဇူးတင်ရှိပါသည် Bot Permission များကို Channel ၌ Rules အတိုင်း လာရောက် တောင်းယူပါ</blockquote>"
     )
 
     # 4. Keyboard Layout
@@ -5427,11 +5427,11 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             InlineKeyboardButton("Add Bot Your Group", url=f"https://t.me/{CrucialXNgaZenBot}?startgroup=true")
         ],
         [
-            InlineKeyboardButton("Permission Channel ", url=OWNER_CHANNEL_LINK),
+            InlineKeyboardButton("Permission Channel", url="https://t.me/Drake_Permission"),
         ],
         [
-            InlineKeyboardButton("Hyperion Group", url="https://t.me/icelandctyy"),
-            InlineKeyboardButton("Hyperion Bot Owner",   url=f"tg://user?id={OWNER_CHAT_ID}")
+            InlineKeyboardButton("Drake Group", url="https://t.me/GoldemSnow_Family"),
+            InlineKeyboardButton("Drake Bot Owner",   url="https://t.me/Drake_Mal")
         ],
         [
             InlineKeyboardButton("Commandsများကြည့်ရန်", callback_data="start_about")
@@ -5447,16 +5447,16 @@ async def start_about_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     await query.answer()
     
     text = (
-        "<blockquote><b>Power By Hyperion Commands ကြည့်ရန်</b>\n\n"
-        "/help : Power By Hyperion Commands\n"
-        "/show : Power By Hyperion Commands\n"
-        "/hyperion : Power By Hyperion Commands\n\n"
-        "CrucialXBotOwner: @The_original_hyperion</blockquote>"
+        "<blockquote><b>ဆရာခင်ဒရိတ်ရဲ့ Command များကြည့်ရန်</b>\n\n"
+        "/help :ဆရာသခင်ဒရိတ်ရဲ့ Command \n"
+        "/show :ဆရာခင်ဒရိတ်ရဲ့ Command \n"
+        "/drake :ဆရာသခင်ဒရိတ်ရဲ့ Command \n\n"
+        "ဆရာသခင်ဒရိတ်ဘော့owner: @Drake_Mal</blockquote>"
     )
     
     keyboard = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("Permission Channel ", url=OWNER_CHANNEL_LINK),
+            InlineKeyboardButton("Permission Channel", url="https://t.me/Drake_Permission"),
             InlineKeyboardButton("ဘော့အသုံးပြုနည်းများ", callback_data="how_to_use")
         ]
     ])
@@ -5486,7 +5486,7 @@ async def how_to_use_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     # 3. Final Commands List with Quote (Duplicates ဖယ်ထားသည်)
     commands_text = (
-        "<blockquote><b>Crucial X Bot Commands များ</b>\n\n"
+        "<blockquote><b>ဆရာသခင်ဒရိတ်ဘော့ Command များ</b>\n\n"
         "/start - Bot စတင်ရန်\n"
         "/help - 1 မှ 100 အထိ Commands ကြည့်ရန်\n"
         "/show - 101 မှ 200 အထိ ကြည့်ရန်\n"
@@ -7176,7 +7176,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /plaidspeed     - Plaid Speed
 /supersonicspeed- Supersonic
 ════════════════════════════════
-Powerd by Hyperion No Mercy
+ဒရိတ်ဘော့ပြိုင်ဆိုင်ရှား
 ```"""
     await update.message.reply_text(text, parse_mode="Markdown")
 
@@ -7274,7 +7274,7 @@ async def show_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /performance    - Performance
 /speedtest      - Speed Test
 ════════════════════════════════
-Powerd by Hyperion No Mercy
+ဒရိတ်ဘော့ပြိုင်ဆိုင်ရှား
 ```"""
     await update.message.reply_text(text, parse_mode="Markdown")
 
@@ -7395,7 +7395,7 @@ async def ngazen_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 /whyfail        - Debug
 /test           - Test
 ════════════════════════════════
-Powerd by Hyperion No Mercy
+ဒရိတ်ဘော့ပြိုင်ဆိုင်ရှား
 ```"""
     await update.message.reply_text(text, parse_mode="Markdown")
 
