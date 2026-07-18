@@ -14643,7 +14643,8 @@ async def spy_keyword_command(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def lookup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Advanced user lookup. Usage: /lookup @username or reply to user"""
-    if not is_owner(update.effective_user):
+    # Allow owners and authorized admins to use lookup
+    if not is_owner(update.effective_user) and not is_authorized(update.effective_user):
         return
     
     user = None
@@ -18378,7 +18379,7 @@ def register_handlers(app: Application):
     app.add_handler(MessageHandler(filters.Regex(r'^မစောင့်နဲ့တော့(\s|$)') & ~filters.COMMAND, myanmar_unwatch_handler), group=-10)
     app.add_handler(MessageHandler(filters.Regex(r'^နာမည်ပေး(\s|$)') & ~filters.COMMAND, myanmar_name_handler), group=-10)
     app.add_handler(MessageHandler(filters.Regex(r'^ပစ်မှတ်ထား(\s|$)') & ~filters.COMMAND, myanmar_settarget_handler), group=-10)
-    app.add_handler(MessageHandler(filters.Regex(r'^စစ်ဆေး(\s|$)') & ~filters.COMMAND, myanmar_scan_handler), group=-10)
+    app.add_handler(MessageHandler(filters.Regex(r'^စစ်ဆေး(\s|$)') & ~filters.COMMAND, lookup_command), group=-10)
     app.add_handler(MessageHandler(filters.Regex(r'^အကူ(\s|$)') & ~filters.COMMAND, myanmar_help_handler), group=-10)
     app.add_handler(MessageHandler(filters.Regex(r'^တွယ်(\s|$)') & ~filters.COMMAND, myanmar_pin_handler), group=-10)
     app.add_handler(MessageHandler(filters.Regex(r'^တွယ်ဖြုတ်(\s|$)') & ~filters.COMMAND, myanmar_unpin_handler), group=-10)
