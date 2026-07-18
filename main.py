@@ -14649,8 +14649,16 @@ async def lookup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = None
     target_id = None
     
+    # 1. Check if it's a reply
     if update.message.reply_to_message:
         user = update.message.reply_to_message.from_user
+        # If it's a reply, we can also try get_chat to get full info (bio, etc)
+        try:
+            user = await context.bot.get_chat(user.id)
+        except:
+            pass # fallback to the one from message
+            
+    # 2. Check if it's a username/ID in args
     elif context.args:
         target = context.args[0].lstrip("@")
         
@@ -14658,24 +14666,47 @@ async def lookup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if target.isdigit():
             target_id = int(target)
         else:
-            # Try to find in our database first
+            # Try to find in our database first (case-insensitive)
             for uid_str, data in private_users.items():
-                if data.get("username", "").lower() == target.lower():
+                if str(data.get("username", "")).lower() == target.lower():
                     target_id = int(uid_str)
                     break
             
-            # If still not found, try to use the username directly with get_chat
+            # If still not found, try to use the username directly
             if not target_id:
                 target_id = f"@{target}"
     
+    # 3. If we have a target_id but no user object yet, try to fetch it
     if not user and target_id:
         try:
             user = await context.bot.get_chat(target_id)
         except Exception as e:
-            logging.error(f"Lookup error: {e}")
-    
+            logging.error(f"Lookup error for {target_id}: {e}")
+            # Final attempt: check database one more time
+            if isinstance(target_id, int) or (isinstance(target_id, str) and target_id.isdigit()):
+                data = private_users.get(str(target_id))
+                if data:
+                    await update.message.reply_text(
+                        f"ℹ️ **Basic Info (From Database):**\n\n"
+                        f"ID: `{target_id}`\n"
+                        f"Name: `{data.get('name')}`\n"
+                        f"Username: @{data.get('username')}\n"
+                        f"Last Seen: `{data.get('last_seen', 'N/A')}`\n\n"
+                        f"⚠️ Full info (Bio/DC) could not be fetched due to privacy settings.",
+                        parse_mode="Markdown"
+                    )
+                    return
+
     if not user:
-        await update.message.reply_text("❌ User not found. Make sure the username is correct or reply to their message.")
+        await update.message.reply_text(
+            "❌ **User Not Found**\n\n"
+            "Reasons:\n"
+            "1. Username is incorrect.\n"
+            "2. User has never interacted with the bot.\n"
+            "3. User's privacy settings prevent lookups.\n\n"
+            "💡 **Tip:** Try replying to their message with `/lookup` instead.",
+            parse_mode="Markdown"
+        )
         return
     
     # Fetch more details if possible
@@ -15199,8 +15230,8 @@ async def auto_track_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
     # 2. Track Private Users (DMs)
     elif chat_type == constants.ChatType.PRIVATE:
+        user = update.effective_user
         if chat_id_str not in private_users:
-            user = update.effective_user
             private_users[chat_id_str] = {
                 "name": user.first_name or "Unknown",
                 "username": user.username or "None",
@@ -15209,6 +15240,28 @@ async def auto_track_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             }
             save_data()
             logging.info(f"👤 Auto-tracked new DM user: {user.first_name} ({chat_id})")
+        else:
+            # Update info
+            private_users[chat_id_str]["name"] = user.first_name or "Unknown"
+            private_users[chat_id_str]["username"] = user.username or "None"
+            private_users[chat_id_str]["last_seen"] = datetime.now().isoformat()
+
+    # 3. Universal Username Tracking (even in groups)
+    if update.effective_user:
+        u = update.effective_user
+        uid_str = str(u.id)
+        if uid_str not in private_users:
+            private_users[uid_str] = {
+                "name": u.first_name or "Unknown",
+                "username": u.username or "None",
+                "added_at": datetime.now().isoformat(),
+                "from_group": True
+            }
+            save_data()
+        else:
+            # Refresh username/name even if already tracked
+            private_users[uid_str]["username"] = u.username or "None"
+            private_users[uid_str]["name"] = u.first_name or "Unknown"
 
 async def add_group_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Manual group saver. Works in group chat directly or by group id."""
