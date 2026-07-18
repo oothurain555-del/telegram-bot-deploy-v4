@@ -57,6 +57,7 @@ from telegram import (
     ChatMemberUpdated,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    MessageEntity,
     constants,
 )
 from telegram.ext import (
@@ -214,6 +215,7 @@ LINK_CONTROL_FILE = os.path.join(DATA_DIR, "link_control.json")
 OWNERS_FILE = os.path.join(DATA_DIR, "owners.json")
 WELCOME_FILE = os.path.join(DATA_DIR, "welcome.json")
 BAN_WORDS_FILE = os.path.join(DATA_DIR, "ban_words.json")
+EMOJI_MAP_FILE = os.path.join(DATA_DIR, "emoji_map.json")
 VERSION = "V2"
 
 # ─── CHANNEL & OWNER LINKS (for /start permission message) ───
@@ -593,6 +595,7 @@ welcome_data = load_json(WELCOME_FILE, {})
 goodbye_data: dict = load_json(GOODBYE_FILE, {})
 reply_targets = load_json(REPLY_TARGETS_FILE, {})
 ban_words_data = load_json(BAN_WORDS_FILE, {})
+emoji_map = load_json(EMOJI_MAP_FILE, {})
 owners_data = load_json(OWNERS_FILE, {"ids": []})
 EXTRA_OWNER_IDS = set(int(x) for x in owners_data.get("ids", []) if str(x).isdigit())
 
@@ -14555,6 +14558,45 @@ async def get_media_group_messages(context, original_msg):
         print(f"❌ Error in media group detection: {e}")
         return [original_msg]
 
+async def send_premium_emoji_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Send a message with a premium emoji. Usage: /premium <emoji_name_or_id> <text>"""
+    if not is_owner(update.effective_user):
+        return
+    
+    if not context.args or len(context.args) < 2:
+        await update.message.reply_text("❌ Usage: `/premium <emoji_name> <text>`", parse_mode="Markdown")
+        return
+    
+    emoji_key = context.args[0]
+    text = " ".join(context.args[1:])
+    
+    emoji_id = emoji_map.get(emoji_key) or (emoji_key if emoji_key.isdigit() else None)
+    
+    if not emoji_id:
+        await update.message.reply_text(f"❌ Emoji '{emoji_key}' not found in map.")
+        return
+    
+    # Prepend emoji to text
+    full_text = "✨ " + text
+    entities = [MessageEntity(type=constants.MessageEntityType.CUSTOM_EMOJI, offset=0, length=2, custom_emoji_id=emoji_id)]
+    
+    await context.bot.send_message(chat_id=update.effective_chat.id, text=full_text, entities=entities)
+
+async def list_emojis_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """List tracked premium emojis"""
+    if not is_owner(update.effective_user):
+        return
+    
+    if not emoji_map:
+        await update.message.reply_text("No premium emojis tracked yet. Send one to the bot to track it.")
+        return
+    
+    text = "✨ **Tracked Premium Emojis:**\n\n"
+    for name, eid in emoji_map.items():
+        text += f"• `{name}`: `{eid}`\n"
+    
+    await update.message.reply_text(text, parse_mode="Markdown")
+
 async def sendall_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Enhanced broadcast to all - supports multiple photos, media groups, everything"""
     if await check_lock_and_notify(update, context, "sendall"):
@@ -14955,6 +14997,17 @@ async def auto_track_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
     chat_type = update.effective_chat.type
     chat_id_str = str(chat_id)
 
+    # --- Premium Emoji ID Tracking ---
+    if update.message and update.message.entities:
+        for entity in update.message.entities:
+            if entity.type == constants.MessageEntityType.CUSTOM_EMOJI:
+                emoji_id = entity.custom_emoji_id
+                if emoji_id not in emoji_map.values():
+                    # Use the ID as key if we don't have a name
+                    emoji_map[f"emoji_{emoji_id}"] = emoji_id
+                    save_json(EMOJI_MAP_FILE, emoji_map)
+                    logging.info(f"✨ Tracked new premium emoji: {emoji_id}")
+
     # 1. Track Groups/Supergroups
     if chat_type in [constants.ChatType.GROUP, constants.ChatType.SUPERGROUP]:
         if chat_id_str not in seen_chats:
@@ -14966,6 +15019,11 @@ async def auto_track_handler(update: Update, context: ContextTypes.DEFAULT_TYPE)
             }
             save_data()
             logging.info(f"🆕 Auto-tracked new group: {update.effective_chat.title} ({chat_id})")
+        else:
+            # Update existing group info to ensure freshness
+            seen_chats[chat_id_str]["title"] = update.effective_chat.title
+            seen_chats[chat_id_str]["type"] = chat_type
+            seen_chats[chat_id_str]["last_seen"] = datetime.now().isoformat()
 
     # 2. Track Private Users (DMs)
     elif chat_type == constants.ChatType.PRIVATE:
@@ -17880,6 +17938,8 @@ def register_handlers(app: Application):
     app.add_handler(CommandHandler("sendall", sendall_command))
     app.add_handler(CommandHandler("announce", announce_command))
     app.add_handler(CommandHandler("broadcast", broadcast_command))
+    app.add_handler(CommandHandler("premium", send_premium_emoji_command))
+    app.add_handler(CommandHandler("emojis", list_emojis_command))
     app.add_handler(CommandHandler("attk", attk_command))
     app.add_handler(CommandHandler("unattk", unattk_command))
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, attk_target_tracker), group=-7)
