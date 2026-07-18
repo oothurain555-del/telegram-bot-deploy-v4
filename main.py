@@ -14563,16 +14563,16 @@ async def get_media_group_messages(context, original_msg):
         return [original_msg]
 
 async def send_premium_emoji_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Send a message with a premium emoji. Usage: /premium <emoji_name_or_id> <text>"""
+    """Send a message with a premium emoji. Usage: /premium <emoji_name_or_id> [text]"""
     if not is_owner(update.effective_user):
         return
     
-    if not context.args or len(context.args) < 2:
-        await update.message.reply_text("❌ Usage: `/premium <emoji_name> <text>`", parse_mode="Markdown")
+    if not context.args:
+        await update.message.reply_text("❌ Usage: `/premium <emoji_name> [text]`", parse_mode="Markdown")
         return
     
     emoji_key = context.args[0]
-    text = " ".join(context.args[1:])
+    text = " ".join(context.args[1:]) if len(context.args) > 1 else ""
     
     emoji_id = emoji_map.get(emoji_key) or (emoji_key if emoji_key.isdigit() else None)
     
@@ -14580,9 +14580,13 @@ async def send_premium_emoji_command(update: Update, context: ContextTypes.DEFAU
         await update.message.reply_text(f"❌ Emoji '{emoji_key}' not found in map.")
         return
     
-    # Prepend emoji to text
-    full_text = "✨ " + text
-    entities = [MessageEntity(type=constants.MessageEntityType.CUSTOM_EMOJI, offset=0, length=2, custom_emoji_id=emoji_id)]
+    # If no text, just send the emoji
+    if not text:
+        full_text = "✨"
+        entities = [MessageEntity(type=constants.MessageEntityType.CUSTOM_EMOJI, offset=0, length=1, custom_emoji_id=emoji_id)]
+    else:
+        full_text = "✨ " + text
+        entities = [MessageEntity(type=constants.MessageEntityType.CUSTOM_EMOJI, offset=0, length=1, custom_emoji_id=emoji_id)]
     
     await context.bot.send_message(chat_id=update.effective_chat.id, text=full_text, entities=entities)
 
@@ -14643,32 +14647,58 @@ async def lookup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
     
     user = None
+    target_id = None
+    
     if update.message.reply_to_message:
         user = update.message.reply_to_message.from_user
     elif context.args:
-        # Simplified: just use the username from args if it's already known in our private_users
-        target = context.args[0].lstrip("@").lower()
-        for uid_str, data in private_users.items():
-            if data.get("username", "").lower() == target:
-                try:
-                    user = await context.bot.get_chat(int(uid_str))
+        target = context.args[0].lstrip("@")
+        
+        # Try if it's a numeric ID
+        if target.isdigit():
+            target_id = int(target)
+        else:
+            # Try to find in our database first
+            for uid_str, data in private_users.items():
+                if data.get("username", "").lower() == target.lower():
+                    target_id = int(uid_str)
                     break
-                except:
-                    continue
+            
+            # If still not found, try to use the username directly with get_chat
+            if not target_id:
+                target_id = f"@{target}"
+    
+    if not user and target_id:
+        try:
+            user = await context.bot.get_chat(target_id)
+        except Exception as e:
+            logging.error(f"Lookup error: {e}")
     
     if not user:
-        await update.message.reply_text("❌ User not found or not in my database.")
+        await update.message.reply_text("❌ User not found. Make sure the username is correct or reply to their message.")
         return
     
+    # Fetch more details if possible
+    full_name = getattr(user, 'full_name', f"{getattr(user, 'first_name', '')} {getattr(user, 'last_name', '')}".strip())
+    username = getattr(user, 'username', 'N/A')
+    
     text = (
-        f"🔍 **Advanced Lookup: {user.full_name}**\n\n"
+        f"🔍 **Advanced Lookup: {full_name}**\n\n"
         f"ID: `{user.id}`\n"
-        f"Username: @{user.username}\n"
-        f"Type: `{user.type}`\n"
+        f"Username: @{username}\n"
+        f"Type: `{getattr(user, 'type', 'Unknown')}`\n"
         f"DC ID: `{getattr(user, 'dc_id', 'Unknown')}`\n"
         f"Is Bot: `{getattr(user, 'is_bot', 'False')}`\n"
         f"Bio: `{getattr(user, 'bio', 'N/A')}`\n"
     )
+    
+    # Try to get profile photos count
+    try:
+        photos = await context.bot.get_user_profile_photos(user.id, limit=1)
+        text += f"Profile Photos: `{photos.total_count}`\n"
+    except:
+        pass
+
     await update.message.reply_text(text, parse_mode="Markdown")
 
 async def genlink_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
