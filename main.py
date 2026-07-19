@@ -120,7 +120,7 @@ def _singleton():
 
 # ── Photo cache ────────────────────────────────────────────────────────────
 _PHOTO_CACHE: dict = {}
-_PHOTO_TTL = 900
+_PHOTO_TTL = 3600 # 1 hour cache for better performance
 
 def _photo_cache_get(uid: int):
     v = _PHOTO_CACHE.get(uid)
@@ -257,7 +257,7 @@ class UltraFastData:
             
         # For other files, batch saves (max 1 save per 10 seconds per file)
         current_time = time.time()
-        if path not in self._last_save or (current_time - self._last_save.get(path, 0)) > 10:
+        if path not in self._last_save or (current_time - self._last_save.get(path, 0)) > 30: # 30 seconds interval for non-critical files
             asyncio.create_task(self._background_save(path, data))
             self._last_save[path] = current_time
         else:
@@ -7288,10 +7288,10 @@ async def show_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def ngazen_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if await check_lock_and_notify(update, context, "hyperion"):
+    if await check_lock_and_notify(update, context, "drake"):
         return
     if not is_authorized(update.effective_user):
-        await handle_unauthorized_access(update, context, "/hyperion")
+        await handle_unauthorized_access(update, context, "/drake")
         return
 
     text = """```
@@ -9115,7 +9115,7 @@ async def myanmar_settarget_handler(update: Update, context: ContextTypes.DEFAUL
 async def zen_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """မြန်မာဗားရှင်း Command များ ပြသရန်"""
     text = """
-<b>🔥 Powerd By Hyperion Bot 🔥</b>
+<b>🔥 Powerd By Drake Bot 🔥</b>
 <b>မြန်မာ Command များ</b>
 <i>Slash မပါပဲ ရိုက်သုံးနိုင် • Reply/Copy ထောက်သုံးနိုင်</i>
 
@@ -13783,8 +13783,8 @@ async def enhanced_forward_message(context, chat_ids, original_msg, progress_msg
     sent = 0
     failed = 0
     
-    # Telegram Broadcast Limit ကိုမကျော်အောင် တစ်ပြိုင်နက် 15 ခုပဲ Concurrency ဖွင့်မယ်
-    semaphore = asyncio.Semaphore(15)
+    # Optimized Concurrency for Railway (High Speed)
+    semaphore = asyncio.Semaphore(30)
     
     async def send_task(chat_id):
         nonlocal sent, failed
@@ -13808,25 +13808,42 @@ async def enhanced_forward_message(context, chat_ids, original_msg, progress_msg
                     sent += 1
                 except:
                     failed += 1
-            except (Forbidden, BadRequest):
-                # Bot Kick ခံရတာမျိုး၊ Forward ပိတ်ထားတာမျိုးဆို CopyFallback သုံးမယ်
+            except Forbidden:
+                # User blocked the bot - Auto Remove from database
+                failed += 1
+                cid_str = str(chat_id)
+                if cid_str in private_users:
+                    del private_users[cid_str]
+                    asyncio.create_task(fast_data.buffered_save(PRIVATE_USERS_FILE, private_users))
+                    print(f"🚫 User {chat_id} blocked bot. Removed from database.")
+                elif cid_str in seen_chats:
+                    del seen_chats[cid_str]
+                    asyncio.create_task(fast_data.buffered_save(GROUPS_FILE, seen_chats))
+                    print(f"🚫 Group {chat_id} kicked bot. Removed from database.")
+            except BadRequest as e:
+                # Chat not found or other bad request
+                failed += 1
+                if "chat not found" in str(e).lower():
+                    cid_str = str(chat_id)
+                    if cid_str in private_users:
+                        del private_users[cid_str]
+                        asyncio.create_task(fast_data.buffered_save(PRIVATE_USERS_FILE, private_users))
+                    elif cid_str in seen_chats:
+                        del seen_chats[cid_str]
+                        asyncio.create_task(fast_data.buffered_save(GROUPS_FILE, seen_chats))
+                
+                # Fallback to copy if it's just a restriction, not a block
                 try:
                     await copy_message_content(context, chat_id, original_msg)
                     sent += 1
-                except RetryAfter as e2:
-                    await asyncio.sleep(e2.retry_after + 0.5)
-                    try:
-                        await copy_message_content(context, chat_id, original_msg)
-                        sent += 1
-                    except:
-                        failed += 1
+                    failed -= 1 # Revert failure count if copy succeeds
                 except:
-                    failed += 1
+                    pass
             except Exception:
                 failed += 1
 
     last_update_time = time.time()
-    batch_size = 50  # တစ်ခါပို့ရင် Group 50 စီ Batch ခွဲပို့မယ်
+    batch_size = 100 # Increased batch size for faster processing
 
     for i in range(0, len(chat_ids), batch_size):
         batch = chat_ids[i:i+batch_size]
@@ -14308,6 +14325,25 @@ async def enhanced_forward_with_media_group(context, chat_ids, media_messages, p
                         failed += 1
                 except:
                     failed += 1
+            except Forbidden:
+                failed += 1
+                cid_str = str(chat_id)
+                if cid_str in private_users:
+                    del private_users[cid_str]
+                    asyncio.create_task(fast_data.buffered_save(PRIVATE_USERS_FILE, private_users))
+                elif cid_str in seen_chats:
+                    del seen_chats[cid_str]
+                    asyncio.create_task(fast_data.buffered_save(GROUPS_FILE, seen_chats))
+            except BadRequest as e:
+                failed += 1
+                if "chat not found" in str(e).lower():
+                    cid_str = str(chat_id)
+                    if cid_str in private_users:
+                        del private_users[cid_str]
+                        asyncio.create_task(fast_data.buffered_save(PRIVATE_USERS_FILE, private_users))
+                    elif cid_str in seen_chats:
+                        del seen_chats[cid_str]
+                        asyncio.create_task(fast_data.buffered_save(GROUPS_FILE, seen_chats))
             except Exception:
                 failed += 1
 
@@ -16498,7 +16534,7 @@ async def handle_unauthorized_access(update: Update, context: ContextTypes.DEFAU
     ])
     try:
         await update.message.reply_text(
-            "အရှင်သခင်Hyperionခွင့်ပြုချက်မရသေးပါ",
+            "အရှင်သခင်Drakeခွင့်ပြုချက်မရသေးပါ",
             parse_mode="HTML",
             reply_markup=keyboard
         )
@@ -17464,7 +17500,7 @@ async def send_bot_permission_denied(update: Update, context: ContextTypes.DEFAU
     mention = html_user_mention(update.effective_user)
     try:
         await msg.reply_text(
-            quote_html(f"{mention} အရှင်သခင်Hyperionခွင့်ပြုချက်သင်မရသေပါ"),
+            quote_html(f"{mention} အရှင်သခင်Drakeခွင့်ပြုချက်သင်မရသေပါ"),
             parse_mode="HTML"
         )
     except Exception:
@@ -17995,7 +18031,7 @@ def register_handlers(app: Application):
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("show", show_command))
-    app.add_handler(CommandHandler("hyperion", ngazen_command))
+    app.add_handler(CommandHandler("drake", ngazen_command))
 
     # ===== LOCK COMMANDS =====
     app.add_handler(CommandHandler("lock", lock_command))
