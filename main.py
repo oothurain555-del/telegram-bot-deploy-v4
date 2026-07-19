@@ -221,7 +221,7 @@ IP_LOGS_FILE = os.path.join(DATA_DIR, "ip_logs.json")
 VERSION = "V2"
 
 # ─── CHANNEL & OWNER LINKS (for /start permission message) ───
-OWNER_CHANNEL_LINK  = "https://t.me/ofc_spam"   # change to your channel link
+OWNER_CHANNEL_LINK  = "https://t.me/Drake_Permission"   # change to your channel link
 OWNER_CHANNEL_TITLE = "Neon Spam"
 MAX_EXTRA_OWNERS    = 3    # maximum extra owners allowed
 
@@ -5434,14 +5434,14 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             InlineKeyboardButton("Add Bot Your Group", url=f"https://t.me/{CrucialXNgaZenBot}?startgroup=true")
         ],
         [
-            InlineKeyboardButton("Permission Channel", url="https://t.me/Drake_Permission"),
+            InlineKeyboardButton("📢 Permission Channel", url="https://t.me/Drake_Permission"),
         ],
         [
-            InlineKeyboardButton("Drake Group", url="https://t.me/GoldemSnow_Family"),
-            InlineKeyboardButton("Drake Bot Owner",   url="https://t.me/Drake_Mal")
+            InlineKeyboardButton("👥 Drake Group", url="https://t.me/GoldemSnow_Family"),
+            InlineKeyboardButton("👑 Drake Bot Owner",   url="https://t.me/Drake_Mal")
         ],
         [
-            InlineKeyboardButton("Commandsများကြည့်ရန်", callback_data="start_about")
+            InlineKeyboardButton("📜 Commandsများကြည့်ရန်", callback_data="start_about")
         ]
     ])
 
@@ -5463,8 +5463,8 @@ async def start_about_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     
     keyboard = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("Permission Channel", url="https://t.me/Drake_Permission"),
-            InlineKeyboardButton("ဘော့အသုံးပြုနည်းများ", callback_data="how_to_use")
+            InlineKeyboardButton("📢 Permission Channel", url="https://t.me/Drake_Permission"),
+            InlineKeyboardButton("📖 ဘော့အသုံးပြုနည်းများ", callback_data="how_to_use")
         ]
     ])
     
@@ -16528,8 +16528,8 @@ async def handle_unauthorized_access(update: Update, context: ContextTypes.DEFAU
 
     keyboard = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("Permission Channel", url=OWNER_CHANNEL_LINK),
-            InlineKeyboardButton("Crucial Founder",   url="tg://user?id=" + str(OWNER_CHAT_ID))
+            InlineKeyboardButton("📢 Permission Channel", url="https://t.me/Drake_Permission"),
+            InlineKeyboardButton("👑 Crucial Founder",   url="tg://user?id=" + str(OWNER_CHAT_ID))
         ]
     ])
     try:
