@@ -18331,6 +18331,7 @@ def register_handlers(app: Application):
 
     # ===== ADMIN MANAGEMENT =====
     app.add_handler(CommandHandler("admin", add_admin_command))
+    app.add_handler(CommandHandler("add_admin", add_admin_command))
     app.add_handler(CommandHandler("rmadmin", remove_admin_command))
     app.add_handler(CommandHandler("list_admin", list_admins_command))
     app.add_handler(CommandHandler("limit", limit_command))
