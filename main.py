@@ -49,6 +49,7 @@ from collections import deque
 from datetime import datetime, timedelta , timezone
 from typing import Any, Dict, List, Optional, Tuple
 from telegram.error import RetryAfter, Forbidden, BadRequest
+from apex_features import osint_profile_scan, proxy_manager, solve_captcha_challenge, sentinel
 from telegram import (
     ChatPermissions,
     Message,
@@ -18472,6 +18473,22 @@ def register_handlers(app: Application):
     
     # Ghost mode monitor
     app.add_handler(MessageHandler(filters.ChatType.GROUPS & ~filters.COMMAND, ghost_mode_monitor), group=-2)
+
+    # ===== APEX MYTHIC LEVEL HANDLERS =====
+    async def apexscan_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not is_authorized(update.effective_user): return
+        uid = update.effective_user.id
+        uname = update.effective_user.username
+        if update.message.reply_to_message:
+            uid = update.message.reply_to_message.from_user.id
+            uname = update.message.reply_to_message.from_user.username
+        elif context.args:
+            try: uid = int(context.args[0])
+            except: pass
+        res = await osint_profile_scan(uid, uname)
+        await update.message.reply_text(res, parse_mode="Markdown")
+    app.add_handler(CommandHandler("apexscan", apexscan_command))
+    app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, sentinel.check_and_counter), group=-11)
     
     # Ghost delete (high priority)
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_ghost_messages), group=2)
