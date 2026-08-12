@@ -21,7 +21,10 @@ try:
     import speedtest
 except Exception:
     speedtest = None
-import psutil
+try:
+    import psutil
+except Exception:
+    psutil = None
 import math
 try:
     import aiohttp
