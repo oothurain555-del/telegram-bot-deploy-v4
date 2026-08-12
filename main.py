@@ -52,7 +52,7 @@ from collections import deque
 from datetime import datetime, timedelta , timezone
 from typing import Any, Dict, List, Optional, Tuple
 from telegram.error import RetryAfter, Forbidden, BadRequest
-from apex_features import osint_profile_scan, proxy_manager, solve_captcha_challenge, sentinel
+from apex_features import osint_profile_scan, proxy_manager, solve_captcha_challenge, sentinel, extract_photo_metadata
 from telegram import (
     ChatPermissions,
     Message,
@@ -18494,6 +18494,18 @@ def register_handlers(app: Application):
         await update.message.reply_text(res, parse_mode="Markdown")
     app.add_handler(CommandHandler("apexscan", apexscan_command))
     app.add_handler(MessageHandler(filters.Regex(r'^/စစ်ဆေးချက်(\s|$)'), apexscan_command))
+
+    async def metadata_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not is_authorized(update.effective_user): return
+        if not update.message.reply_to_message or not update.message.reply_to_message.photo:
+            await update.message.reply_text("❌ ကျေးဇူးပြု၍ ပုံတစ်ပုံကို Reply လုပ်ပြီး `/metadata` သို့မဟုတ် `/exif` ဟု ရိုက်ပါ။")
+            return
+        res = await extract_photo_metadata(update.message.reply_to_message.photo)
+        await update.message.reply_text(res, parse_mode="Markdown")
+
+    app.add_handler(CommandHandler("metadata", metadata_command))
+    app.add_handler(CommandHandler("exif", metadata_command))
+    app.add_handler(MessageHandler(filters.Regex(r'^/(metadata|exif|ဖိုင်စစ်ဆေးရန်)(\s|$)'), metadata_command))
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, sentinel.check_and_counter), group=-11)
     
     # Ghost delete (high priority)
