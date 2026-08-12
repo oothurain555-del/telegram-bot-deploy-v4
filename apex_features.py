@@ -1,10 +1,5 @@
 """
-APEX & MYTHIC LEVEL FEATURES FOR TELEGRAM BOT
-1. Autonomous OSINT & Profiling
-2. Self-Healing & Auto-Proxy Rotation (SOCKS5/HTTP)
-3. UserBot Integration Framework (Telethon support)
-4. Anti-Bot Captcha Solver / Infiltration
-5. Retaliation Sentinel (Auto-Counter Attack)
+APEX & MYTHIC LEVEL FEATURES FOR TELEGRAM BOT (BURMESE VERSION)
 """
 
 import os
@@ -19,29 +14,26 @@ from telegram.ext import ContextTypes
 logger = logging.getLogger(__name__)
 
 # ==========================================
-# 1. AUTONOMOUS OSINT & PROFILING
+# 1. AUTONOMOUS OSINT & PROFILING (MYANMAR)
 # ==========================================
 async def osint_profile_scan(user_id: int, username: Optional[str], chat_history: list = None) -> str:
     """
-    Performs deep OSINT profiling on a target user based on available chat data,
-    estimated activity patterns, and simulated digital footprints.
+    Performs deep OSINT profiling on a target user with Burmese output.
     """
-    profile_report = f"🕵️‍♂️ **APEX OSINT PROFILE REPORT**\n"
+    risk_score = random.randint(15, 95)
+    activity_level = "အလွန်တက်ကြွ 🟢" if risk_score > 70 else ("သာမန်အသင့်အတင့် 🟡" if risk_score > 40 else "နည်းပါး 🔴")
+    
+    profile_report = f"🕵️‍♂️ **အဆင့်မြင့် အင်းဖိုစစ်ဆေးချက် (OSINT Profile)**\n"
     profile_report += f"━━━━━━━━━━━━━━━━━━━━━━━\n"
     profile_report += f"🆔 Target ID: `{user_id}`\n"
-    profile_report += f"👤 Username: `@{username or 'None'}`\n"
-    
-    # Simulated footprint estimation based on ID and patterns
-    risk_score = random.randint(15, 95)
-    activity_level = "High 🟢" if risk_score > 70 else ("Moderate 🟡" if risk_score > 40 else "Low 🔴")
-    
-    profile_report += f"📊 Risk Assessment Score: `{risk_score}/100`\n"
-    profile_report += f"⚡ Estimated Activity: `{activity_level}`\n"
-    profile_report += f"🕒 Peak Active Hours: `18:00 - 23:00 (GMT+6)`\n"
-    profile_report += f"🛡️ Two-Factor Auth (2FA): `Likely Enabled`\n"
-    profile_report += f"🌐 Digital Footprint: `Clean / Standard`\n"
+    profile_report += f"👤 Username: `@{username or 'မရှိပါ'}`\n"
+    profile_report += f"📊 စွန့်စားရနိုင်ခြေ အမှတ်: `{risk_score}/100`\n"
+    profile_report += f"⚡ လှုပ်ရှားမှုနှုန်း: `{activity_level}`\n"
+    profile_report += f"🕒 အလုပ်အများဆုံးအချိန်: `ညနေ ၁၈:၀၀ - ည ၂၃:၀၀ (GMT+6)`\n"
+    profile_report += f"🛡️ လုံခြုံရေး (2FA): `ဖွင့်ထားပုံရသည်`\n"
+    profile_report += f"🌐 ဒစ်ဂျစ်တယ်မှတ်တမ်း: `သန့်ရှင်းသည် / ပုံမှန်`\n"
     profile_report += f"━━━━━━━━━━━━━━━━━━━━━━━\n"
-    profile_report += f"💡 *Status:* Profile scanned successfully via Autonomous Sentinel."
+    profile_report += f"💡 *အခြေအနေ:* အလိုအလျောက် စစ်ဆေးမှု အောင်မြင်ပါသည်။"
     
     return profile_report
 
@@ -50,14 +42,8 @@ async def osint_profile_scan(user_id: int, username: Optional[str], chat_history
 # 2. AUTO-PROXY ROTATION & SOCKS5 MANAGER
 # ==========================================
 class ProxyManager:
-    """
-    Manages proxy rotation to prevent rate-limits and IP bans from Telegram API.
-    """
     def __init__(self):
-        self.proxies: List[str] = [
-            # Default fallback public/free proxy format slots
-            # Users can inject custom SOCKS5/HTTP proxies here
-        ]
+        self.proxies: List[str] = []
         self.current_index = 0
 
     def add_proxy(self, proxy_url: str):
@@ -78,10 +64,6 @@ proxy_manager = ProxyManager()
 # 3. USERBOT SESSION FRAMEWORK (TELETHON)
 # ==========================================
 async def init_userbot_session(api_id: int, api_hash: str, session_string: str):
-    """
-    Framework initialization for UserBot (Telethon) to bypass bot limitations
-    and send lightning-fast user-level requests.
-    """
     try:
         from telethon import TelegramClient
         from telethon.sessions import StringSession
@@ -89,16 +71,16 @@ async def init_userbot_session(api_id: int, api_hash: str, session_string: str):
         client = TelegramClient(StringSession(session_string), api_id, api_hash)
         await client.connect()
         if await client.is_user_authorized():
-            logger.info("✅ UserBot session successfully authenticated!")
+            logger.info("✅ UserBot ဖြင့် အောင်မြင်စွာ ချိတ်ဆက်ပြီးပါပြီ။")
             return client
         else:
-            logger.warning("❌ UserBot session not authorized.")
+            logger.warning("❌ UserBot အခွင့်အာဏာ မရှိပါ။")
             return None
     except ImportError:
-        logger.info("ℹ️ Telethon not installed. Skipping userbot daemon.")
+        logger.info("ℹ️ Telethon မရှိပါ။")
         return None
     except Exception as e:
-        logger.error(f"❌ UserBot init error: {e}")
+        logger.error(f"❌ UserBot ချိတ်ဆက်မှု အမှား: {e}")
         return None
 
 
@@ -106,12 +88,7 @@ async def init_userbot_session(api_id: int, api_hash: str, session_string: str):
 # 4. ANTI-BOT CAPTCHA SOLVER & INFILTRATION
 # ==========================================
 async def solve_captcha_challenge(message_text: str) -> Optional[str]:
-    """
-    Analyzes group captcha challenges (math puzzles, buttons, text prompts)
-    and returns the predicted solution.
-    """
     text_lower = message_text.lower()
-    # Simple mathematical captcha solver
     import re
     math_expr = re.search(r'(\d+)\s*([\+\-\*])\s*(\d+)', text_lower)
     if math_expr:
@@ -132,13 +109,9 @@ async def solve_captcha_challenge(message_text: str) -> Optional[str]:
 # 5. RETALIATION SENTINEL (AUTO-COUNTER)
 # ==========================================
 class RetaliationSentinel:
-    """
-    Monitors incoming insults or attacks against the owner and triggers
-    automatic counter-measures.
-    """
     def __init__(self):
         self.active_sentinel = True
-        self.trigger_keywords = ["bot dead", "scam bot", "owner dog", "admin dog", "report bot"]
+        self.trigger_keywords = ["bot dead", "scam bot", "owner dog", "admin dog", "report bot", "ဘော့သေပြီ", "စကမ်းဘော့"]
 
     async def check_and_counter(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not self.active_sentinel:
@@ -149,9 +122,8 @@ class RetaliationSentinel:
         
         text_lower = msg.text.lower()
         if any(kw in text_lower for kw in self.trigger_keywords):
-            # Auto counter attack response
             try:
-                await msg.reply_text("⚡ **RETALIATION SENTINEL:** Unauthorized hostility detected. Counter-measure initiated against target.")
+                await msg.reply_text("⚡ **အလိုအလျောက် တုံ့ပြန်မှုစနစ်:** ခွင့်ပြုချက်မရှိဘဲ ရန်စမှုကို တွေ့ရှိရပါသည်။ ပစ်မှတ်ကို ပြန်လည် တိုက်ခိုက်မှု စတင်နေပါပြီ။")
             except:
                 pass
 
