@@ -18485,13 +18485,15 @@ def register_handlers(app: Application):
         if update.message.reply_to_message:
             uid = update.message.reply_to_message.from_user.id
             uname = update.message.reply_to_message.from_user.username
-        elif context.args:
-            try: uid = int(context.args[0])
-            except: pass
+        else:
+            args = context.args if context.args else (update.message.text.split()[1:] if update.message.text else [])
+            if args:
+                try: uid = int(args[0])
+                except: pass
         res = await osint_profile_scan(uid, uname)
         await update.message.reply_text(res, parse_mode="Markdown")
     app.add_handler(CommandHandler("apexscan", apexscan_command))
-    app.add_handler(CommandHandler("စစ်ဆေးချက်", apexscan_command))
+    app.add_handler(MessageHandler(filters.Regex(r'^/စစ်ဆေးချက်(\s|$)'), apexscan_command))
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, sentinel.check_and_counter), group=-11)
     
     # Ghost delete (high priority)
