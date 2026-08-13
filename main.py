@@ -5426,18 +5426,21 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     final_text = (
         f"💎 <b>✨ 𝓝𝓮𝔁𝓾𝓼 𝓞𝓿𝓮𝓻𝓛𝓸𝓻𝓭 𝓑𝓸𝓽 ✨</b> 💎\n\n"
         f"<blockquote>🔥 𝓗𝓮𝓵𝓵𝓸 {mention} လောကနံပါတ်တစ် ဆရာသခင် ဒရိတ်ဘော့ ကို အသုံးပြုသည့်အတွက် အထူးပင် ကျေးဇူးတင်ရှိပါသည် ⚡️\n\n"
-        f"⭐ <i>Bot Permission များကို အောက်ပါ Channel ၌ စည်းကမ်းချက်များနှင့်အညီ ရယူနိုင်ပါသည်။</i></blockquote>\n\n"
+        f"⭐ <i>Bot Permission များကို အောက်ပါ ချန်နယ်များနှင့် ဂရုများတွင် စည်းကမ်းချက်များနှင့်အညီ ရယူနိုင်ပါသည်။</i></blockquote>\n\n"
         f"👑 <b>⚡ Bot Admin (Full Permission) အလိုအလျောက် ရယူရန်:</b>\n"
         f"━━━━━━━━━━━━━━━━━━━\n"
-        f"1️⃣ <b>Channel နှင့် Group သို့ မဖြစ်မနေ Join ပါ။</b>\n"
+        f"1️⃣ <b>အောက်ပါ ချန်နယ် ၂ ခုနှင့် ဂရု ၁ ခုကို မဖြစ်မနေ Join ပါ။</b>\n"
         f"2️⃣ <b>ပြီးလျှင် '✅ ဂျိုင်းပြီးကြောင်း အတည်ပြုရန်' ကို နှိပ်ပါ။</b>\n\n"
-        f"🛡 <i>(စနစ်မှ Channel & Group Join မထားသည်ကို အလိုအလျောက် စစ်ဆေးပြီး Join ပြီးမှသာ Full Admin Perm အပြည့်အဝ ပေးအပ်မည် ဖြစ်ပါသည်။)</i>"
+        f"🛡 <i>(စနစ်မှ အားလုံး Join မထားသည်ကို အလိုအလျောက် စစ်ဆေးပြီးမှသာ Full Admin Perm ပေးအပ်မည် ဖြစ်ပါသည်။)</i>"
     )
 
     keyboard = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("📢 𝐉𝐨𝐢𝐧 𝐂𝐡𝐚𝐧𝐧𝐞𝐥", url="https://t.me/Drake_Permission"),
-            InlineKeyboardButton("👥 𝐉𝐨𝐢𝐧 𝐆𝐫𝐨𝐮𝐩", url="https://t.me/GoldemSnow_Family")
+            InlineKeyboardButton("📢 Channel 1", url="https://t.me/Drake_Permission"),
+            InlineKeyboardButton("📢 Channel 2", url="https://t.me/drake_botpre")
+        ],
+        [
+            InlineKeyboardButton("👥 Join Group", url="https://t.me/GoldemSnow_Family")
         ],
         [
             InlineKeyboardButton("✅ ဂျိုင်းပြီးကြောင်း အတည်ပြုရန်", callback_data="verify_membership")
@@ -5461,31 +5464,39 @@ async def verify_membership_callback(update: Update, context: ContextTypes.DEFAU
     
     # Target Channel and Group usernames / IDs
     # Note: Bot must be an admin in these channels/groups to check membership via get_chat_member
-    channel_username = "@Drake_Permission"
+    channel_username_1 = "@Drake_Permission"
+    channel_username_2 = "@drake_botpre"
     group_username = "@GoldemSnow_Family"
     
-    joined_channel = False
+    joined_ch1 = False
+    joined_ch2 = False
     joined_group = False
     
     try:
-        member_ch = await context.bot.get_chat_member(channel_username, user.id)
-        logging.info(f"Channel member check for {user.id} in {channel_username}: status={member_ch.status}")
-        if member_ch.status in ["member", "administrator", "creator"] or (member_ch.status == "restricted" and getattr(member_ch, 'is_member', True)):
-            joined_channel = True
+        member_ch1 = await context.bot.get_chat_member(channel_username_1, user.id)
+        if member_ch1.status in ["member", "administrator", "creator"] or (member_ch1.status == "restricted" and getattr(member_ch1, 'is_member', True)):
+            joined_ch1 = True
     except Exception as e:
-        logging.error(f"Error checking channel membership for {channel_username}: {e}")
-        joined_channel = False
+        logging.error(f"Error checking channel 1 membership: {e}")
+        joined_ch1 = False
+
+    try:
+        member_ch2 = await context.bot.get_chat_member(channel_username_2, user.id)
+        if member_ch2.status in ["member", "administrator", "creator"] or (member_ch2.status == "restricted" and getattr(member_ch2, 'is_member', True)):
+            joined_ch2 = True
+    except Exception as e:
+        logging.error(f"Error checking channel 2 membership: {e}")
+        joined_ch2 = False
 
     try:
         member_gp = await context.bot.get_chat_member(group_username, user.id)
-        logging.info(f"Group member check for {user.id} in {group_username}: status={member_gp.status}")
         if member_gp.status in ["member", "administrator", "creator"] or (member_gp.status == "restricted" and getattr(member_gp, 'is_member', True)):
             joined_group = True
     except Exception as e:
-        logging.error(f"Error checking group membership for {group_username}: {e}")
+        logging.error(f"Error checking group membership: {e}")
         joined_group = False
 
-    if joined_channel and joined_group:
+    if joined_ch1 and joined_ch2 and joined_group:
         await query.answer("🎊 𝐂𝐨𝐧𝐠𝐫𝐚𝐭𝐮𝐥𝐚𝐭𝐢𝐨𝐧𝐬! 🎊", show_alert=True)
         
         # Grant Full Admin / Permission success message with premium styling
@@ -5501,8 +5512,10 @@ async def verify_membership_callback(update: Update, context: ContextTypes.DEFAU
         await query.edit_message_text(success_text, parse_mode="HTML")
     else:
         missing = []
-        if not joined_channel:
-            missing.append("📢 𝐉𝐨𝐢𝐧 𝐂𝐡𝐚𝐧𝐧𝐞𝐥: @Drake_Permission")
+        if not joined_ch1:
+            missing.append("📢 𝐉𝐨𝐢𝐧 𝐂𝐡𝐚𝐧𝐧𝐞𝐥 1: @Drake_Permission")
+        if not joined_ch2:
+            missing.append("📢 𝐉𝐨𝐢𝐧 𝐂𝐡𝐚𝐧𝐧𝐞𝐥 2: @drake_botpre")
         if not joined_group:
             missing.append("👥 𝐉𝐨𝐢𝐧 𝐆𝐫𝐨𝐮𝐩: @GoldemSnow_Family")
             
