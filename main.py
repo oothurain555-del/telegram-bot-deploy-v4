@@ -18885,9 +18885,9 @@ def main():
     try:
         app.run_polling(
             allowed_updates      = Update.ALL_TYPES,
-            poll_interval        = 0.5,         # 0.2 ထက် 0.5 က Network အတွက် ပိုငြိမ်ပါတယ်
+            poll_interval        = 0.5,
             timeout              = 30,
-            drop_pending_updates = True,        # အရေးကြီး - ဒါကို False ထားမှ လူဝင်တာ အကုန်သိမှာပါ
+            drop_pending_updates = False,       # False ထားမှသာ Bot ကို Group ထဲထည့်တာနဲ့ ချက်ချင်းသိပြီး Database ထဲဝင်မှာပါ
         )
     except (KeyboardInterrupt, SystemExit):
         logging.warning("Bot stopped")
