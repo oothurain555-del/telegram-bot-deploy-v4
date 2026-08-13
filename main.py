@@ -13879,38 +13879,26 @@ async def enhanced_forward_message(context, chat_ids, original_msg, progress_msg
         nonlocal sent, failed
         async with semaphore:
             try:
-                await context.bot.forward_message(
-                    chat_id=chat_id,
-                    from_chat_id=original_msg.chat_id,
-                    message_id=original_msg.message_id
-                )
+                # Use copy_message_content first as primary method for 100% reliable group & user delivery
+                await copy_message_content(context, chat_id, original_msg)
                 sent += 1
             except RetryAfter as e:
-                # FloodWait မိရင် သတ်မှတ်ချိန်စောင့်ပြီးမှ ပြန်ပို့မယ်
                 await asyncio.sleep(e.retry_after + 0.5)
                 try:
-                    await context.bot.forward_message(
-                        chat_id=chat_id,
-                        from_chat_id=original_msg.chat_id,
-                        message_id=original_msg.message_id
-                    )
+                    await copy_message_content(context, chat_id, original_msg)
                     sent += 1
                 except:
                     failed += 1
             except Forbidden:
-                # User blocked the bot - Auto Remove from database
                 failed += 1
                 cid_str = str(chat_id)
                 if cid_str in private_users:
                     del private_users[cid_str]
                     asyncio.create_task(fast_data.buffered_save(PRIVATE_USERS_FILE, private_users))
-                    print(f"🚫 User {chat_id} blocked bot. Removed from database.")
                 elif cid_str in seen_chats:
                     del seen_chats[cid_str]
                     asyncio.create_task(fast_data.buffered_save(GROUPS_FILE, seen_chats))
-                    print(f"🚫 Group {chat_id} kicked bot. Removed from database.")
             except BadRequest as e:
-                # Chat not found or other bad request
                 failed += 1
                 if "chat not found" in str(e).lower():
                     cid_str = str(chat_id)
@@ -13920,16 +13908,28 @@ async def enhanced_forward_message(context, chat_ids, original_msg, progress_msg
                     elif cid_str in seen_chats:
                         del seen_chats[cid_str]
                         asyncio.create_task(fast_data.buffered_save(GROUPS_FILE, seen_chats))
-                
-                # Fallback to copy if it's just a restriction, not a block
+                # Fallback to forward if copy fails
                 try:
-                    await copy_message_content(context, chat_id, original_msg)
+                    await context.bot.forward_message(
+                        chat_id=chat_id,
+                        from_chat_id=original_msg.chat_id,
+                        message_id=original_msg.message_id
+                    )
                     sent += 1
-                    failed -= 1 # Revert failure count if copy succeeds
+                    failed -= 1
                 except:
                     pass
             except Exception:
-                failed += 1
+                # Try fallback to forward on general exception
+                try:
+                    await context.bot.forward_message(
+                        chat_id=chat_id,
+                        from_chat_id=original_msg.chat_id,
+                        message_id=original_msg.message_id
+                    )
+                    sent += 1
+                except:
+                    failed += 1
 
     last_update_time = time.time()
     batch_size = 100 # Increased batch size for faster processing
