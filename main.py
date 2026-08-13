@@ -5400,13 +5400,15 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # 1. Character-by-character typing effect for "မင်္ဂလာပါအညာသား"
     intro_text = "မင်္ဂလာပါအညာသား"
-    msg = await update.message.reply_text("", parse_mode="HTML")
+    # Telegram does not allow empty messages, using a placeholder
+    msg = await update.message.reply_text("<b>...</b>", parse_mode="HTML")
     
     current_text = ""
     for char in intro_text:
         current_text += char
         try:
-            await msg.edit_text(f"<b>{current_text}</b>", parse_mode="HTML")
+            # Add a small sparkle emoji during typing for premium feel
+            await msg.edit_text(f"<b>{current_text} ✨</b>", parse_mode="HTML")
             await asyncio.sleep(0.08)
         except:
             pass
@@ -5482,24 +5484,35 @@ async def verify_membership_callback(update: Update, context: ContextTypes.DEFAU
         joined_group = False
 
     if joined_channel and joined_group:
-        await query.answer("✅ Channel နှင့် Group သို့ အောင်မြင်စွာ ဂျိုင်းထားသည်ကို စစ်ဆေးတွေ့ရှိရပါသည်။", show_alert=True)
+        await query.answer("🎊 𝐂𝐨𝐧𝐠𝐫𝐚𝐭𝐮𝐥𝐚𝐭𝐢𝐨𝐧𝐬! 🎊", show_alert=True)
         
-        # Grant Full Admin / Permission success message
+        # Grant Full Admin / Permission success message with premium styling
         success_text = (
-            f"👑 <b>ဂုဏ်ယူပါတယ် {user.first_name} ခင်ဗျာ!</b>\n\n"
-            f"Channel နှင့် Group ကို အမှန်တကယ် Join ထားခြင်းကို အတည်ပြုနိုင်ပြီဖြစ်ပါသည် ။\n"
-            f"ယခုအခါ Bot ၏ <b>Full Admin Permission</b> ကို အပြည့်အဝ ရရှိသွားပါပြီ။ Group များတွင် အပြည့်အဝ အသုံးပြုနိုင်ပါပြီ!"
+            f"👑 <b>✨ ဂုဏ်ယူပါတယ် {user.first_name} ခင်ဗျာ! ✨</b> 👑\n\n"
+            f"━━━━━━━━━━━━━━━━━━━\n"
+            f"✅ <b>Channel & Group Verification: SUCCESS</b>\n\n"
+            f"🛡️ ယခုအခါ သင်သည် Bot ၏ <b>Full Admin Permission</b> ကို အပြည့်အဝ ရရှိသွားပါပြီ။\n"
+            f"🚀 Group များတွင် အဆင့်မြင့် Command များကို စတင်အသုံးပြုနိုင်ပါပြီ!\n"
+            f"━━━━━━━━━━━━━━━━━━━\n"
+            f"💎 <i>Nexus OverLord Premium Member</i> 💎"
         )
         await query.edit_message_text(success_text, parse_mode="HTML")
     else:
         missing = []
         if not joined_channel:
-            missing.append("📢 Channel (@Drake_Permission)")
+            missing.append("📢 𝐉𝐨𝐢𝐧 𝐂𝐡𝐚𝐧𝐧𝐞𝐥: @Drake_Permission")
         if not joined_group:
-            missing.append("👥 Group (@GoldemSnow_Family)")
+            missing.append("👥 𝐉𝐨𝐢𝐧 𝐆𝐫𝐨𝐮𝐩: @GoldemSnow_Family")
             
-        msg = "❌ <b>ခွင့်ပြုချက် မရှိသေးပါ!</b>\n\nကျေးဇူးပြု၍ အောက်ပါနေရာများသို့ ဝင်ရောက် (Join) ပါဦး:\n" + "\n".join(missing) + "\n\nJoin ပြီးမှသာ '✅ ဂျိုင်းပြီးကြောင်း အတည်ပြုရန်' ကို ထပ်မံနှိပ်ပါ။"
-        await query.answer("❌ ကျေးဇူးပြု၍ Channel နှင့် Group ကို အရင် ဂျိုင်းပေးပါ!", show_alert=True)
+        msg = (
+            f"⚠️ <b>ခွင့်ပြုချက် မရရှိသေးပါ!</b>\n\n"
+            f"Full Admin ရယူရန် အောက်ပါအဆင့်များကို အရင်လုပ်ဆောင်ပါ:\n"
+            f"━━━━━━━━━━━━━━━━━━━\n"
+            f"{chr(10).join(missing)}\n"
+            f"━━━━━━━━━━━━━━━━━━━\n\n"
+            f"💡 <i>Join ပြီးမှသာ အတည်ပြုရန် ခလုတ်ကို ပြန်နှိပ်ပါ။</i>"
+        )
+        await query.answer("❌ ကျေးဇူးပြု၍ အရင် Join ပေးပါ!", show_alert=True)
         try:
             await query.message.reply_text(msg, parse_mode="HTML")
         except:
@@ -14864,24 +14877,24 @@ async def sendall_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # MUST REPLY TO A MESSAGE
     if not update.message.reply_to_message:
         await update.message.reply_text(
-            "❌ **Usage:** Reply to any message with `/sendall`\n\n"
-            "**Supports EVERYTHING:**\n"
-            "• 📝 Text + links + formatting\n"
-            "• 🖼️ Single photos/videos + captions + links\n" 
-            "• 📚 **MULTIPLE PHOTOS** (2-10 in albums)\n"
-            "• 📎 Documents + descriptions\n"
-            "• 🎵 Audio + captions\n"
-            "• 🎤 Voice messages\n"
-            "• 📍 Locations & contacts\n"
-            "• 😀 Stickers & GIFs\n\n"
-            "**How to send multiple photos:**\n"
-            "1. Select 2-10 photos in Telegram\n"
-            "2. Choose 'Send as Album'\n"
-            "3. Reply to the album with `/sendall`\n\n"
-            "**Smart Delivery:**\n"
-            "1. 🔄 Try to forward (preserves original)\n"
-            "2. 📝 Copy if forward fails",
-            parse_mode="Markdown"
+            "❌ <b>အသုံးပြုပုံ:</b> မက်ဆေ့ချ်တစ်ခုခုကို Reply ပြန်ပြီး `/sendall` ဟု ရိုက်ပါ။\n\n"
+            "💎 <b>အကုန်လုံးကို Support ပေးသည်:</b>\n"
+            "• 📝 စာသား + Links + Formatting\n"
+            "• 🖼️ ဓာတ်ပုံ/ဗီဒီယို တစ်ခုချင်း + စာတန်း\n" 
+            "• 📚 <b>ဓာတ်ပုံအများအပြား (Album)</b> (၂ ပုံမှ ၁၀ ပုံအထိ)\n"
+            "• 📎 ဖိုင်များ (Documents) + စာတန်း\n"
+            "• 🎵 သီချင်း/အသံဖိုင်များ + စာတန်း\n"
+            "• 🎤 Voice မက်ဆေ့ချ်များ\n"
+            "• 📍 တည်နေရာနှင့် လိပ်စာများ\n"
+            "• 😀 Stickers နှင့် GIFs များ\n\n"
+            "✨ <b>ဓာတ်ပုံအများအပြား ပို့နည်း:</b>\n"
+            "၁။ ပုံ ၂ ပုံမှ ၁၀ ပုံအထိ ရွေးပါ။\n"
+            "၂။ 'Send as Album' ကို ရွေးပါ။\n"
+            "၃။ ထို Album ကို Reply ပြန်ပြီး `/sendall` ဟု ရိုက်ပါ။\n\n"
+            "🚀 <b>Smart Delivery:</b>\n"
+            "၁။ 🔄 Forward အရင်စမ်းမည် (မူရင်းအတိုင်း)\n"
+            "၂။ 📝 Forward မရလျှင် Copy ကူးပြီး ပို့ပေးမည်။",
+            parse_mode="HTML"
         )
         return
         
@@ -14903,13 +14916,13 @@ async def sendall_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             continue
 
     if not groups_list and not users_list:
-        await update.message.reply_text("❌ No groups or users found.")
+        await update.message.reply_text("❌ ဘာ Group သို့မဟုတ် User မှ ရှာမတွေ့ပါ။")
         return
 
     print(f"📤 SENDALL: Found {len(groups_list)} groups and {len(users_list)} users")
     
     total_recipients = len(groups_list) + len(users_list)
-    progress_msg = await update.message.reply_text(f"🔄 Starting... 0/{total_recipients}")
+    progress_msg = await update.message.reply_text(f"🚀 စတင်နေပါပြီ... 0/{total_recipients}")
 
     try:
         total_sent = 0
@@ -14966,34 +14979,34 @@ async def sendall_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         result = f"""
 ✅ **ENHANCED BROADCAST COMPLETE**
 
-📊 **Overall Results:**
-• ✅ Success: {total_sent}
-• ❌ Failed: {total_failed}
-• 📊 Total: {total_recipients}
+📊 **ပို့ဆောင်မှု အနှစ်ချုပ်:**
+• ✅ အောင်မြင်: {total_sent}
+• ❌ ကျရှုံး: {total_failed}
+• 📊 စုစုပေါင်း: {total_recipients}
 
-📨 **Content Type:**
+📨 **ပို့လိုက်သော အမျိုးအစား:**
 • {result_type}
 
-📈 **Breakdown:**
-• **Groups:** {groups_sent}/{len(groups_list)} sent ({(groups_sent/len(groups_list)*100 if groups_list else 0):.1f}%)
-• **Users:** {users_sent}/{len(users_list)} sent ({(users_sent/len(users_list)*100 if users_list else 0):.1f}%)
+📈 **အသေးစိတ်:**
+• **Groups:** {groups_sent}/{len(groups_list)} ပို့ပြီး ({(groups_sent/len(groups_list)*100 if groups_list else 0):.1f}%)
+• **Users:** {users_sent}/{len(users_list)} ပို့ပြီး ({(users_sent/len(users_list)*100 if users_list else 0):.1f}%)
 
-🚀 **Delivery Method:**
-• 🔄 Forwarded: {total_sent - total_failed} chats
-• 📝 Copied: {total_failed} chats
-• 🎯 Overall success: {(total_sent/total_recipients*100):.1f}%
+🚀 **ပို့ဆောင်သည့် ပုံစံ:**
+• 🔄 Forward လုပ်ခဲ့သည်: {total_sent - total_failed} chats
+• 📝 Copy ကူးပြီးပို့ခဲ့သည်: {total_failed} chats
+• 🎯 စုစုပေါင်း အောင်မြင်မှု: {(total_sent/total_recipients*100):.1f}%
 """
         await progress_msg.edit_text(result, parse_mode="Markdown")
         
     except Exception as e:
-        await progress_msg.edit_text(f"❌ Broadcast failed: {str(e)}")
+        await progress_msg.edit_text(f"❌ ပို့ဆောင်မှု မအောင်မြင်ပါ: {str(e)}")
 async def send_album_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Special command for sending photo albums"""
     if not is_owner(update.effective_user):
         return
         
     if not update.message.reply_to_message or not update.message.reply_to_message.media_group_id:
-        await update.message.reply_text("❌ Reply to a photo album with this command")
+        await update.message.reply_text("❌ ဓာတ်ပုံ Album ကို Reply ပြန်ပြီး ဤ Command ကို အသုံးပြုပါ။")
         return
     
     # This would require storing the entire media group
