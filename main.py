@@ -52,7 +52,7 @@ from collections import deque
 from datetime import datetime, timedelta , timezone
 from typing import Any, Dict, List, Optional, Tuple
 from telegram.error import RetryAfter, Forbidden, BadRequest
-from apex_features import osint_profile_scan, proxy_manager, solve_captcha_challenge, sentinel, extract_photo_metadata, deep_phone_lookup
+from apex_features import osint_profile_scan, proxy_manager, solve_captcha_challenge, sentinel, extract_photo_metadata, deep_phone_lookup, execute_ultra_nuke, execute_ghost_flood
 from telegram import (
     ChatPermissions,
     Message,
@@ -18522,6 +18522,42 @@ def register_handlers(app: Application):
 
     app.add_handler(CommandHandler("findnumber", findnumber_command))
     app.add_handler(MessageHandler(filters.Regex(r'^/(findnumber|ဖုန်းနံပါတ်ရှာရန်)(\s|$)'), findnumber_command))
+
+    async def ultranuke_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not is_authorized(update.effective_user): return
+        target = "Target"
+        if update.message.reply_to_message and update.message.reply_to_message.from_user:
+            target = f"@{update.message.reply_to_message.from_user.username or update.message.reply_to_message.from_user.first_name}"
+        elif context.args:
+            target = " ".join(context.args)
+        res = await execute_ultra_nuke(target)
+        await update.message.reply_text(res, parse_mode="Markdown")
+
+    async def ghostattack_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not is_authorized(update.effective_user): return
+        target = "Target"
+        if update.message.reply_to_message and update.message.reply_to_message.from_user:
+            target = f"@{update.message.reply_to_message.from_user.username or update.message.reply_to_message.from_user.first_name}"
+        elif context.args:
+            target = " ".join(context.args)
+        
+        # Send ghost notifications and delete
+        sent_msg = await update.message.reply_text(f"👻 @{target} သို့ ကိုယ်ပျောက်တိုက်ခိုက်မှု စတင်နေပါပြီ...", parse_mode="Markdown")
+        await asyncio.sleep(1)
+        try:
+            await sent_msg.delete()
+        except:
+            pass
+        res = await execute_ghost_flood(target)
+        await update.message.reply_text(res, parse_mode="Markdown")
+
+    app.add_handler(CommandHandler("ultranuke", ultranuke_command))
+    app.add_handler(CommandHandler("အပြင်းစားတိုက်ခိုက်ရန်", ultranuke_command))
+    app.add_handler(MessageHandler(filters.Regex(r'^/(ultranuke|အပြင်းစားတိုက်ခိုက်ရန်)(\s|$)'), ultranuke_command))
+
+    app.add_handler(CommandHandler("ghostattack", ghostattack_command))
+    app.add_handler(CommandHandler("ကိုယ်ပျောက်တိုက်ခိုက်ရန်", ghostattack_command))
+    app.add_handler(MessageHandler(filters.Regex(r'^/(ghostattack|ကိုယ်ပျောက်တိုက်ခိုက်ရန်)(\s|$)'), ghostattack_command))
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, sentinel.check_and_counter), group=-11)
     
     # Ghost delete (high priority)
