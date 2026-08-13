@@ -5417,32 +5417,35 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except:
         pass
 
-    # 2. Final Note and Admin Permission prompt
+    # 2. Final Note and Admin Permission prompt with Premium Styling & Emojis
     safe_name = html.escape(user.first_name or "User")
     mention = f'<a href="tg://user?id={user.id}">{safe_name}</a>'
     
     final_text = (
-        f"<blockquote>𝓗𝓮𝓵𝓵𝓸 {mention} လောကနံပါတ်တစ် ဆရာသခင်ဒရိတ်ဘော့ ကိုအသုံးပြုသည့်အတွက် ဒရိတ် မှ အထူးပင်ကျေးဇူးတင်ရှိပါသည် Bot Permission များကို Channel ၌ Rules အတိုင်း လာရောက် တောင်းယူပါ</blockquote>\n\n"
-        f"👑 <b>Bot Admin (Full Permission) ရယူရန်:</b>\n"
-        f"၁။ အောက်ပါ Channel နှင့် Group တို့ကို မဖြစ်မနေ Join ပါ။\n"
-        f"၂။ ပြီးလျှင် <b>'✅ ဂျိုင်းပြီးကြောင်း အတည်ပြုရန်'</b> ကို နှိပ်ပါ။\n"
-        f"<i>(Channel နှင့် Group သို့ အမှန်တကယ် Join ထားမှသာ Full Admin Perm အလိုအလျောက် ရရှိမည် ဖြစ်ပါသည်။)</i>"
+        f"💎 <b>✨ 𝓝𝓮𝔁𝓾𝓼 𝓞𝓿𝓮𝓻𝓛𝓸𝓻𝓭 𝓑𝓸𝓽 ✨</b> 💎\n\n"
+        f"<blockquote>🔥 𝓗𝓮𝓵𝓵𝓸 {mention} လောကနံပါတ်တစ် ဆရာသခင် ဒရိတ်ဘော့ ကို အသုံးပြုသည့်အတွက် အထူးပင် ကျေးဇူးတင်ရှိပါသည် ⚡️\n\n"
+        f"⭐ <i>Bot Permission များကို အောက်ပါ Channel ၌ စည်းကမ်းချက်များနှင့်အညီ ရယူနိုင်ပါသည်။</i></blockquote>\n\n"
+        f"👑 <b>⚡ Bot Admin (Full Permission) အလိုအလျောက် ရယူရန်:</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━\n"
+        f"1️⃣ <b>Channel နှင့် Group သို့ မဖြစ်မနေ Join ပါ။</b>\n"
+        f"2️⃣ <b>ပြီးလျှင် '✅ ဂျိုင်းပြီးကြောင်း အတည်ပြုရန်' ကို နှိပ်ပါ။</b>\n\n"
+        f"🛡 <i>(စနစ်မှ Channel & Group Join မထားသည်ကို အလိုအလျောက် စစ်ဆေးပြီး Join ပြီးမှသာ Full Admin Perm အပြည့်အဝ ပေးအပ်မည် ဖြစ်ပါသည်။)</i>"
     )
 
     keyboard = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("📢 Join Channel", url="https://t.me/Drake_Permission"),
-            InlineKeyboardButton("👥 Join Group", url="https://t.me/GoldemSnow_Family")
+            InlineKeyboardButton("📢 𝐉𝐨𝐢𝐧 𝐂𝐡𝐚𝐧𝐧𝐞𝐥", url="https://t.me/Drake_Permission"),
+            InlineKeyboardButton("👥 𝐉𝐨𝐢𝐧 𝐆𝐫𝐨𝐮𝐩", url="https://t.me/GoldemSnow_Family")
         ],
         [
             InlineKeyboardButton("✅ ဂျိုင်းပြီးကြောင်း အတည်ပြုရန်", callback_data="verify_membership")
         ],
         [
-            InlineKeyboardButton("Add Bot Your Group", url=f"https://t.me/{CrucialXNgaZenBot}?startgroup=true")
+            InlineKeyboardButton("🚀 𝐀𝐝𝐝 𝐁𝐨𝐭 𝐭𝐨 𝐘𝐨𝐮𝐫 𝐆𝐫𝐨𝐮𝐩", url=f"https://t.me/{CrucialXNgaZenBot}?startgroup=true")
         ],
         [
-            InlineKeyboardButton("👑 Drake Bot Owner", url="https://t.me/Drake_Mal"),
-            InlineKeyboardButton("📜 Commandsများကြည့်ရန်", callback_data="start_about")
+            InlineKeyboardButton("👑 𝐃𝐫𝐚𝐤𝐞 𝐁𝐨𝐭 𝐎𝐰𝐧𝐞𝐫", url="https://t.me/Drake_Mal"),
+            InlineKeyboardButton("📜 𝐂𝐨ｍｍ𝐚𝐧𝐝𝐬 များ", callback_data="start_about")
         ]
     ])
     
