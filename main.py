@@ -13960,33 +13960,46 @@ async def enhanced_forward_message(context, chat_ids, original_msg, progress_msg
 
 # ADD copy_message_content RIGHT HERE:
 async def copy_message_content(context, chat_id, original_msg):
-    """Copy any message type with all content preserved"""
+    """Copy any message type with all content preserved and non-admin fallback"""
     try:
-        # Get caption and entities
         caption = original_msg.caption or ""
         caption_entities = original_msg.caption_entities
         text_entities = original_msg.entities
         
-        # Handle different message types
         if original_msg.text:
-            # Text message with links/formatting
-            await context.bot.send_message(
-                chat_id=chat_id,
-                text=original_msg.text,
-                entities=text_entities,
-                parse_mode=None,  # Let entities handle formatting
-                disable_web_page_preview=False
-            )
+            try:
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text=original_msg.text,
+                    entities=text_entities,
+                    parse_mode=None,
+                    disable_web_page_preview=False
+                )
+            except Exception:
+                await context.bot.send_message(
+                    chat_id=chat_id,
+                    text=original_msg.text,
+                    parse_mode=None
+                )
             
         elif original_msg.photo:
-            # Photo with caption + links
-            await context.bot.send_photo(
-                chat_id=chat_id,
-                photo=original_msg.photo[-1].file_id,  # Highest quality
-                caption=caption,
-                caption_entities=caption_entities,
-                parse_mode=None
-            )
+            try:
+                await context.bot.send_photo(
+                    chat_id=chat_id,
+                    photo=original_msg.photo[-1].file_id,
+                    caption=caption,
+                    caption_entities=caption_entities,
+                    parse_mode=None
+                )
+            except Exception:
+                try:
+                    await context.bot.send_photo(
+                        chat_id=chat_id,
+                        photo=original_msg.photo[-1].file_id
+                    )
+                except Exception:
+                    if caption:
+                        await context.bot.send_message(chat_id=chat_id, text=caption)
             
         elif original_msg.video:
             # Video with caption + links
