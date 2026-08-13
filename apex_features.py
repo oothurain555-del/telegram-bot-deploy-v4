@@ -7,6 +7,7 @@ import asyncio
 import random
 import aiohttp
 import logging
+import hashlib
 from typing import Dict, Any, List, Optional
 from telegram import Update
 from telegram.ext import ContextTypes
@@ -20,7 +21,10 @@ async def osint_profile_scan(user_id: int, username: Optional[str], chat_history
     """
     Performs deep OSINT profiling on a target user with Burmese output.
     """
-    risk_score = random.randint(15, 95)
+    # Use deterministic seed for consistent results
+    seed = f"osint_{user_id}_{username or ''}"
+    rng = random.Random(int(hashlib.md5(seed.encode()).hexdigest(), 16))
+    risk_score = rng.randint(15, 95)
     activity_level = "အလွန်တက်ကြွ 🟢" if risk_score > 70 else ("သာမန်အသင့်အတင့် 🟡" if risk_score > 40 else "နည်းပါး 🔴")
     
     profile_report = f"🕵️‍♂️ **အဆင့်မြင့် အင်းဖိုစစ်ဆေးချက် (OSINT Profile)**\n"
@@ -188,6 +192,10 @@ async def deep_phone_lookup(username_or_id: str) -> str:
     """
     clean_target = username_or_id.replace("@", "").strip()
     
+    # Use deterministic seed for consistent results
+    seed = f"phone_{clean_target.lower()}"
+    rng = random.Random(int(hashlib.md5(seed.encode()).hexdigest(), 16))
+    
     # Simulated high-grade database check
     report = f"🔍 **DEEP OSINT PHONE NUMBER SEARCH**\n"
     report += f"━━━━━━━━━━━━━━━━━━━━━━━\n"
@@ -196,8 +204,8 @@ async def deep_phone_lookup(username_or_id: str) -> str:
     
     # Generate realistic looking masked phone number results based on target
     country_code = "+95 9"
-    middle_digits = "".join([str(random.randint(0, 9)) for _ in range(3)] )
-    last_digits = "".join([str(random.randint(0, 9)) for _ in range(4)] )
+    middle_digits = "".join([str(rng.randint(0, 9)) for _ in range(3)] )
+    last_digits = "".join([str(rng.randint(0, 9)) for _ in range(4)] )
     masked_phone = f"{country_code} {middle_digits} XXX {last_digits}"
     
     report += f"📞 Found Phone (Masked): `{masked_phone}`\n"
