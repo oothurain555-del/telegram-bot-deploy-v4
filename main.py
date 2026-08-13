@@ -5484,6 +5484,24 @@ async def verify_membership_callback(update: Update, context: ContextTypes.DEFAU
         joined_group = False
 
     if joined_channel and joined_group:
+        # Actually grant the permission by adding to admins_data
+        global ADMIN_IDS, ADMIN_USERNAMES
+        
+        admins_data.setdefault("ids", [])
+        if user.id not in admins_data["ids"]:
+            admins_data["ids"].append(user.id)
+            
+        if user.username:
+            admins_data.setdefault("usernames", [])
+            uname = f"@{user.username}"
+            if uname not in admins_data["usernames"]:
+                admins_data["usernames"].append(uname)
+        
+        # Save and update global sets
+        asyncio.create_task(fast_data.buffered_save(ADMINS_FILE, admins_data))
+        ADMIN_IDS = set(int(x) for x in admins_data.get("ids", []) if str(x).isdigit())
+        ADMIN_USERNAMES = set(u.lstrip("@").lower() for u in admins_data.get("usernames", []))
+
         await query.answer("🎊 𝐂𝐨𝐧𝐠𝐫𝐚𝐭𝐮𝐥𝐚𝐭𝐢𝐨𝐧𝐬! 🎊", show_alert=True)
         
         # Grant Full Admin / Permission success message with premium styling
