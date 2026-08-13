@@ -5469,18 +5469,20 @@ async def verify_membership_callback(update: Update, context: ContextTypes.DEFAU
     
     try:
         member_ch = await context.bot.get_chat_member(channel_username, user.id)
-        if member_ch.status in ["member", "administrator", "creator"]:
+        logging.info(f"Channel member check for {user.id} in {channel_username}: status={member_ch.status}")
+        if member_ch.status in ["member", "administrator", "creator"] or (member_ch.status == "restricted" and getattr(member_ch, 'is_member', True)):
             joined_channel = True
     except Exception as e:
-        # If bot cannot check (e.g. not admin in channel), default to True or handle gracefully
-        # But user requested: "gpနဲ့channel မ Joinရင် မပေးနဲ့ သေချာစစ်ပြီးမှပေးနော်"
+        logging.error(f"Error checking channel membership for {channel_username}: {e}")
         joined_channel = False
 
     try:
         member_gp = await context.bot.get_chat_member(group_username, user.id)
-        if member_gp.status in ["member", "administrator", "creator"]:
+        logging.info(f"Group member check for {user.id} in {group_username}: status={member_gp.status}")
+        if member_gp.status in ["member", "administrator", "creator"] or (member_gp.status == "restricted" and getattr(member_gp, 'is_member', True)):
             joined_group = True
     except Exception as e:
+        logging.error(f"Error checking group membership for {group_username}: {e}")
         joined_group = False
 
     if joined_channel and joined_group:
