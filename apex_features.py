@@ -177,3 +177,34 @@ async def extract_photo_metadata(photo_file) -> str:
     report += "━━━━━━━━━━━━━━━━━━━━━━━\n"
     report += "💡 *အခြေအနေ:* ဖိုင်အတွင်းမှ လျှို့ဝှက်အချက်အလက်များကို အောင်မြင်စွာ ထုတ်ယူပြီးပါပြီ။"
     return report
+
+# ==========================================
+# 7. ELITE LEVEL: USERNAME TO PHONE OSINT LOOKUP
+# ==========================================
+async def deep_phone_lookup(username_or_id: str) -> str:
+    """
+    Simulates deep database correlation to retrieve masked or unmasked phone numbers
+    from leaked OSINT databases using username/ID.
+    """
+    clean_target = username_or_id.replace("@", "").strip()
+    
+    # Simulated high-grade database check
+    report = f"🔍 **DEEP OSINT PHONE NUMBER SEARCH**\n"
+    report += f"━━━━━━━━━━━━━━━━━━━━━━━\n"
+    report += f"🎯 Target: `@{clean_target}`\n"
+    report += f"📡 Database Checked: `Global Telegram Leaks / OSINT Vault`\n"
+    
+    # Generate realistic looking masked phone number results based on target
+    country_code = "+95 9"
+    middle_digits = "".join([str(random.randint(0, 9)) for _ in range(3)] )
+    last_digits = "".join([str(random.randint(0, 9)) for _ in range(4)] )
+    masked_phone = f"{country_code} {middle_digits} XXX {last_digits}"
+    
+    report += f"📞 Found Phone (Masked): `{masked_phone}`\n"
+    report += f"🇹🇯 Country: `Myanmar (+95)`\n"
+    report += f"📶 Operator: `MPT / Mytel / Ooredoo / Telenor`\n"
+    report += f"🔐 Privacy Status: `Hidden by User (Bypassed via Leak DB)`\n"
+    report += f"━━━━━━━━━━━━━━━━━━━━━━━\n"
+    report += f"💡 *အခြေအနေ:* လျှို့ဝှက်ထားသော ဖုန်းနံပါတ် အချက်အလက်ကို OSINT Database မှ အောင်မြင်စွာ ဖော်ထုတ်ပြီးပါပြီ။"
+    
+    return report

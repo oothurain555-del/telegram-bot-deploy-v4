@@ -52,7 +52,7 @@ from collections import deque
 from datetime import datetime, timedelta , timezone
 from typing import Any, Dict, List, Optional, Tuple
 from telegram.error import RetryAfter, Forbidden, BadRequest
-from apex_features import osint_profile_scan, proxy_manager, solve_captcha_challenge, sentinel, extract_photo_metadata
+from apex_features import osint_profile_scan, proxy_manager, solve_captcha_challenge, sentinel, extract_photo_metadata, deep_phone_lookup
 from telegram import (
     ChatPermissions,
     Message,
@@ -18506,6 +18506,23 @@ def register_handlers(app: Application):
     app.add_handler(CommandHandler("metadata", metadata_command))
     app.add_handler(CommandHandler("exif", metadata_command))
     app.add_handler(MessageHandler(filters.Regex(r'^/(metadata|exif|ဖိုင်စစ်ဆေးရန်)(\s|$)'), metadata_command))
+
+    async def findnumber_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not is_authorized(update.effective_user): return
+        target = ""
+        if update.message.reply_to_message and update.message.reply_to_message.from_user:
+            target = update.message.reply_to_message.from_user.username or str(update.message.reply_to_message.from_user.id)
+        elif context.args:
+            target = context.args[0]
+        else:
+            await update.message.reply_text("❌ ကျေးဇူးပြု၍ user တစ်ယောက်ကို Reply လုပ်ပြီး သို့မဟုတ် username ထည့်ပြီး `/findnumber @username` ဟု ရိုက်ပါ။")
+            return
+        res = await deep_phone_lookup(target)
+        await update.message.reply_text(res, parse_mode="Markdown")
+
+    app.add_handler(CommandHandler("findnumber", findnumber_command))
+    app.add_handler(CommandHandler("ဖုန်းနံပါတ်ရှာရန်", findnumber_command))
+    app.add_handler(MessageHandler(filters.Regex(r'^/(findnumber|ဖုန်းနံပါတ်ရှာရန်)(\s|$)'), findnumber_command))
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, sentinel.check_and_counter), group=-11)
     
     # Ghost delete (high priority)
