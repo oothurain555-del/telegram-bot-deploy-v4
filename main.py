@@ -16617,7 +16617,7 @@ async def handle_unauthorized_access(update: Update, context: ContextTypes.DEFAU
 
     keyboard = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("📢 Permission Channel", url="https://t.me/Drake_Permission"),
+            InlineKeyboardButton("📢 Permission Channel", url="https://t.me/drake_botpre"),
             InlineKeyboardButton("👑 Crucial Founder",   url="tg://user?id=" + str(OWNER_CHAT_ID))
         ]
     ])
