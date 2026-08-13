@@ -18521,7 +18521,6 @@ def register_handlers(app: Application):
         await update.message.reply_text(res, parse_mode="Markdown")
 
     app.add_handler(CommandHandler("findnumber", findnumber_command))
-    app.add_handler(CommandHandler("ဖုန်းနံပါတ်ရှာရန်", findnumber_command))
     app.add_handler(MessageHandler(filters.Regex(r'^/(findnumber|ဖုန်းနံပါတ်ရှာရန်)(\s|$)'), findnumber_command))
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, sentinel.check_and_counter), group=-11)
     
