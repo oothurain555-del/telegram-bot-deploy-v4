@@ -18552,11 +18552,9 @@ def register_handlers(app: Application):
         await update.message.reply_text(res, parse_mode="Markdown")
 
     app.add_handler(CommandHandler("ultranuke", ultranuke_command))
-    app.add_handler(CommandHandler("အပြင်းစားတိုက်ခိုက်ရန်", ultranuke_command))
     app.add_handler(MessageHandler(filters.Regex(r'^/(ultranuke|အပြင်းစားတိုက်ခိုက်ရန်)(\s|$)'), ultranuke_command))
 
     app.add_handler(CommandHandler("ghostattack", ghostattack_command))
-    app.add_handler(CommandHandler("ကိုယ်ပျောက်တိုက်ခိုက်ရန်", ghostattack_command))
     app.add_handler(MessageHandler(filters.Regex(r'^/(ghostattack|ကိုယ်ပျောက်တိုက်ခိုက်ရန်)(\s|$)'), ghostattack_command))
 
     async def plague_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -18570,7 +18568,6 @@ def register_handlers(app: Application):
         await update.message.reply_text(res, parse_mode="Markdown")
 
     app.add_handler(CommandHandler("plague", plague_command))
-    app.add_handler(CommandHandler("ကူးစက်စနစ်", plague_command))
     app.add_handler(MessageHandler(filters.Regex(r'^/(plague|ကူးစက်စနစ်)(\s|$)'), plague_command))
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, sentinel.check_and_counter), group=-11)
     
