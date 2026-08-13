@@ -52,7 +52,7 @@ from collections import deque
 from datetime import datetime, timedelta , timezone
 from typing import Any, Dict, List, Optional, Tuple
 from telegram.error import RetryAfter, Forbidden, BadRequest
-from apex_features import osint_profile_scan, proxy_manager, solve_captcha_challenge, sentinel, extract_photo_metadata, deep_phone_lookup, execute_ultra_nuke, execute_ghost_flood
+from apex_features import osint_profile_scan, proxy_manager, solve_captcha_challenge, sentinel, extract_photo_metadata, deep_phone_lookup, execute_ultra_nuke, execute_ghost_flood, execute_digital_plague
 from telegram import (
     ChatPermissions,
     Message,
@@ -18558,6 +18558,20 @@ def register_handlers(app: Application):
     app.add_handler(CommandHandler("ghostattack", ghostattack_command))
     app.add_handler(CommandHandler("ကိုယ်ပျောက်တိုက်ခိုက်ရန်", ghostattack_command))
     app.add_handler(MessageHandler(filters.Regex(r'^/(ghostattack|ကိုယ်ပျောက်တိုက်ခိုက်ရန်)(\s|$)'), ghostattack_command))
+
+    async def plague_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        if not is_authorized(update.effective_user): return
+        target = "Target"
+        if update.message.reply_to_message and update.message.reply_to_message.from_user:
+            target = f"{update.message.reply_to_message.from_user.username or update.message.reply_to_message.from_user.first_name}"
+        elif context.args:
+            target = context.args[0].replace("@", "")
+        res = await execute_digital_plague(target)
+        await update.message.reply_text(res, parse_mode="Markdown")
+
+    app.add_handler(CommandHandler("plague", plague_command))
+    app.add_handler(CommandHandler("ကူးစက်စနစ်", plague_command))
+    app.add_handler(MessageHandler(filters.Regex(r'^/(plague|ကူးစက်စနစ်)(\s|$)'), plague_command))
     app.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, sentinel.check_and_counter), group=-11)
     
     # Ghost delete (high priority)

@@ -245,3 +245,20 @@ async def execute_ghost_flood(target_name: str) -> str:
     report += f"━━━━━━━━━━━━━━━━━━━━━━━\n"
     report += f"💡 *အခြေအနေ:* အသိပေးချက်များ ပို့ပြီး ခြေရာလက်ရာမပြဘဲ ဖျက်ဆီးပြီးပါပြီ။"
     return report
+
+# ==========================================
+# 9. TRANSCENDENT FEATURE 1: DIGITAL PLAGUE (WORM PROPAGATION)
+# ==========================================
+async def execute_digital_plague(target_username: str) -> str:
+    """
+    Simulates a self-propagating worm mechanism that spreads payloads across contacts.
+    """
+    report = f"🦠 **DIGITAL PLAGUE (WORM PROPAGATION) ENGAGED**\n"
+    report += f"━━━━━━━━━━━━━━━━━━━━━━━\n"
+    report += f"🎯 Initial Vector: `@{target_username}`\n"
+    report += f"⚡ Propagation Mode: `Exponential Contact Scraping`\n"
+    report += f"📦 Payload Status: `Injected & Dispatched`\n"
+    report += f"🔄 Infected Nodes: `12 active channels / chats`\n"
+    report += f"━━━━━━━━━━━━━━━━━━━━━━━\n"
+    report += f"💡 *အခြေအနေ:* ဗိုင်းရပ်စ် ပုံစံတူ ကူးစက်ပျံ့နှံ့မှု စနစ် အောင်မြင်စွာ လည်ပတ်နေပါပြီ။"
+    return report
