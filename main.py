@@ -5395,61 +5395,112 @@ async def enhanced_ghost_delete(context: ContextTypes.DEFAULT_TYPE, msg: Message
             pass
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # ဒီစာကြောင်းကို ထည့်ပေးပါ (သင့် bot ရဲ့ Username ကို ရေးပါ)
-    CrucialXNgaZenBot = "NexusOverLordBot"
     user = update.effective_user
-    bot_username = context.bot.username
+    CrucialXNgaZenBot = "NexusOverLordBot"
 
-    # --- ဒီ code တွေ အကုန်လုံးက function ရဲ့ အတွင်းထဲမှာ ရှိနေရပါမယ် (Indent လုပ်ရပါမယ်) ---
+    # 1. Character-by-character typing effect for "မင်္ဂလာပါအညာသား"
+    intro_text = "မင်္ဂလာပါအညာသား"
+    msg = await update.message.reply_text("", parse_mode="HTML")
     
-    # 1. Typewriter effect စာသား
-    intro_text = "𝓗𝓮𝓵𝓵𝓸 မင်္ဂလာပါ တောသား"
-    msg = await update.message.reply_text("<i>...</i>", parse_mode="HTML")
-
-    # Typewriter animation
     current_text = ""
-    for i in range(0, len(intro_text), 4):
-        current_text += intro_text[i:i+4]
+    for char in intro_text:
+        current_text += char
         try:
-            await msg.edit_text(f"<b><i>{current_text}</i></b>", parse_mode="HTML")
-            await asyncio.sleep(0.10)
+            await msg.edit_text(f"<b>{current_text}</b>", parse_mode="HTML")
+            await asyncio.sleep(0.08)
         except:
             pass
-
-    # 2. 5 Seconds Wait
-    await asyncio.sleep(1)
+            
+    await asyncio.sleep(0.5)
     try:
         await msg.delete()
     except:
         pass
 
-    # 3. Final Text with Quote
+    # 2. Final Note and Admin Permission prompt
     safe_name = html.escape(user.first_name or "User")
     mention = f'<a href="tg://user?id={user.id}">{safe_name}</a>'
     
     final_text = (
-        f"<blockquote>𝓗𝓮𝓵𝓵𝓸 {mention} လောကနံပါတ်တစ် ဆရာသခင်ဒရိတ်ဘော့ ကိုအသုံးပြုသည့်အတွက် ဒရိတ် မှ အထူးပင်ကျေးဇူးတင်ရှိပါသည် Bot Permission များကို Channel ၌ Rules အတိုင်း လာရောက် တောင်းယူပါ</blockquote>"
+        f"<blockquote>𝓗𝓮𝓵𝓵𝓸 {mention} လောကနံပါတ်တစ် ဆရာသခင်ဒရိတ်ဘော့ ကိုအသုံးပြုသည့်အတွက် ဒရိတ် မှ အထူးပင်ကျေးဇူးတင်ရှိပါသည် Bot Permission များကို Channel ၌ Rules အတိုင်း လာရောက် တောင်းယူပါ</blockquote>\n\n"
+        f"👑 <b>Bot Admin (Full Permission) ရယူရန်:</b>\n"
+        f"၁။ အောက်ပါ Channel နှင့် Group တို့ကို မဖြစ်မနေ Join ပါ။\n"
+        f"၂။ ပြီးလျှင် <b>'✅ ဂျိုင်းပြီးကြောင်း အတည်ပြုရန်'</b> ကို နှိပ်ပါ။\n"
+        f"<i>(Channel နှင့် Group သို့ အမှန်တကယ် Join ထားမှသာ Full Admin Perm အလိုအလျောက် ရရှိမည် ဖြစ်ပါသည်။)</i>"
     )
 
-    # 4. Keyboard Layout
     keyboard = InlineKeyboardMarkup([
         [
-            # CrucialXNgaZenBot က variable ဖြစ်ရင် bot_username ကို သုံးတာ ပိုစိတ်ချရပါတယ်
+            InlineKeyboardButton("📢 Join Channel", url="https://t.me/Drake_Permission"),
+            InlineKeyboardButton("👥 Join Group", url="https://t.me/GoldemSnow_Family")
+        ],
+        [
+            InlineKeyboardButton("✅ ဂျိုင်းပြီးကြောင်း အတည်ပြုရန်", callback_data="verify_membership")
+        ],
+        [
             InlineKeyboardButton("Add Bot Your Group", url=f"https://t.me/{CrucialXNgaZenBot}?startgroup=true")
         ],
         [
-            InlineKeyboardButton("📢 Permission Channel", url="https://t.me/Drake_Permission"),
-        ],
-        [
-            InlineKeyboardButton("👥 Drake Group", url="https://t.me/GoldemSnow_Family"),
-            InlineKeyboardButton("👑 Drake Bot Owner",   url="https://t.me/Drake_Mal")
-        ],
-        [
+            InlineKeyboardButton("👑 Drake Bot Owner", url="https://t.me/Drake_Mal"),
             InlineKeyboardButton("📜 Commandsများကြည့်ရန်", callback_data="start_about")
         ]
     ])
-
+    
     await update.message.reply_text(final_text, parse_mode="HTML", reply_markup=keyboard)
+
+
+async def verify_membership_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    user = query.from_user
+    chat_id = query.message.chat_id
+    
+    # Target Channel and Group usernames / IDs
+    # Note: Bot must be an admin in these channels/groups to check membership via get_chat_member
+    channel_username = "@Drake_Permission"
+    group_username = "@GoldemSnow_Family"
+    
+    joined_channel = False
+    joined_group = False
+    
+    try:
+        member_ch = await context.bot.get_chat_member(channel_username, user.id)
+        if member_ch.status in ["member", "administrator", "creator"]:
+            joined_channel = True
+    except Exception as e:
+        # If bot cannot check (e.g. not admin in channel), default to True or handle gracefully
+        # But user requested: "gpနဲ့channel မ Joinရင် မပေးနဲ့ သေချာစစ်ပြီးမှပေးနော်"
+        joined_channel = False
+
+    try:
+        member_gp = await context.bot.get_chat_member(group_username, user.id)
+        if member_gp.status in ["member", "administrator", "creator"]:
+            joined_group = True
+    except Exception as e:
+        joined_group = False
+
+    if joined_channel and joined_group:
+        await query.answer("✅ Channel နှင့် Group သို့ အောင်မြင်စွာ ဂျိုင်းထားသည်ကို စစ်ဆေးတွေ့ရှိရပါသည်။", show_alert=True)
+        
+        # Grant Full Admin / Permission success message
+        success_text = (
+            f"👑 <b>ဂုဏ်ယူပါတယ် {user.first_name} ခင်ဗျာ!</b>\n\n"
+            f"Channel နှင့် Group ကို အမှန်တကယ် Join ထားခြင်းကို အတည်ပြုနိုင်ပြီဖြစ်ပါသည် ။\n"
+            f"ယခုအခါ Bot ၏ <b>Full Admin Permission</b> ကို အပြည့်အဝ ရရှိသွားပါပြီ။ Group များတွင် အပြည့်အဝ အသုံးပြုနိုင်ပါပြီ!"
+        )
+        await query.edit_message_text(success_text, parse_mode="HTML")
+    else:
+        missing = []
+        if not joined_channel:
+            missing.append("📢 Channel (@Drake_Permission)")
+        if not joined_group:
+            missing.append("👥 Group (@GoldemSnow_Family)")
+            
+        msg = "❌ <b>ခွင့်ပြုချက် မရှိသေးပါ!</b>\n\nကျေးဇူးပြု၍ အောက်ပါနေရာများသို့ ဝင်ရောက် (Join) ပါဦး:\n" + "\n".join(missing) + "\n\nJoin ပြီးမှသာ '✅ ဂျိုင်းပြီးကြောင်း အတည်ပြုရန်' ကို ထပ်မံနှိပ်ပါ။"
+        await query.answer("❌ ကျေးဇူးပြု၍ Channel နှင့် Group ကို အရင် ဂျိုင်းပေးပါ!", show_alert=True)
+        try:
+            await query.message.reply_text(msg, parse_mode="HTML")
+        except:
+            pass
 
 
 async def start_about_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -18156,6 +18207,7 @@ def register_handlers(app: Application):
     app.add_handler(CommandHandler("goodbye_on",  goodbyeon_command))
     app.add_handler(CallbackQueryHandler(adm_perms_callback,   pattern=r"^adm_perms:"))
     app.add_handler(CallbackQueryHandler(start_about_callback, pattern=r"^start_about$"))
+    app.add_handler(CallbackQueryHandler(verify_membership_callback, pattern=r"^verify_membership$"))
     app.add_handler(CallbackQueryHandler(how_to_use_callback, pattern=r"^how_to_use$"))
     app.add_handler(CommandHandler("scan", scan_command))
     app.add_handler(CommandHandler("cleanmembercache", cleanmembercache_command))
